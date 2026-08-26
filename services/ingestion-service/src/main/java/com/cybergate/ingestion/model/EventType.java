@@ -1,0 +1,11 @@
+package com.cybergate.ingestion.model;
+
+public enum EventType {
+    VULNERABILITY_DETECTED,
+    VULNERABILITY_UPDATED,
+    VULNERABILITY_REMEDIATED,
+    CONTROL_STATUS_CHANGED,
+    ASSET_CREATED,
+    ASSET_MODIFIED,
+    THREAT_INTEL_RECEIVED
+}
