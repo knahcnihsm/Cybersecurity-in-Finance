@@ -28,7 +28,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       localStorage.setItem('token', token)
       set({ token, user, isAuthenticated: true, loading: false })
     } catch (err: any) {
-      const message = err.response?.data?.detail || 'Login failed'
+      const message = err.response?.data?.message || err.response?.data?.error || 'Login failed'
       set({ error: message, loading: false })
       throw err
     }
