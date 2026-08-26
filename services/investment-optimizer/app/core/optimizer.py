@@ -47,7 +47,7 @@ class InvestmentOptimizer:
             x.append(model.NewIntVar(0, min(cost_lakhs, max_per_control), f"x_{i}"))
 
         total_cost = [x[i] * 100000 for i in range(n)]
-        model.Add(sum(total_cost) <= budget_inr)
+        model.Add(sum(total_cost) <= int(budget_inr))
 
         for i in range(n):
             cost_lakhs = max(1, int(controls[i]["implementation_cost"] / 100000))
