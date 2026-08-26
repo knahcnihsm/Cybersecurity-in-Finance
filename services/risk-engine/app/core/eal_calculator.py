@@ -2,7 +2,7 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 
-from app.models.asset import Asset, Vulnerability, RiskCalculation
+from app.models.asset import Asset, Vulnerability, RiskCalculation, RiskSnapshot
 from app.core.risk_calculator import RiskCalculator
 
 
@@ -77,6 +77,9 @@ class EALCalculator:
             .order_by(RiskSnapshot.snapshot_date)
             .all()
         )
+
+        if not snapshots:
+            return {"dates": [], "eal_values": [], "risk_scores": [], "vuln_counts": []}
 
         dates = []
         eal_values = []
