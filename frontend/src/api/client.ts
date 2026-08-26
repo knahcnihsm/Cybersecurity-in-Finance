@@ -1,5 +1,26 @@
 import axios from 'axios'
 
+function toSnakeCase(str: string): string {
+  return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`)
+}
+
+function toCamelCase(str: string): string {
+  return str.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase())
+}
+
+function convertKeys(obj: unknown, converter: (key: string) => string): unknown {
+  if (Array.isArray(obj)) return obj.map((item) => convertKeys(item, converter))
+  if (obj !== null && typeof obj === 'object' && !(obj instanceof Date)) {
+    return Object.fromEntries(
+      Object.entries(obj as Record<string, unknown>).map(([key, value]) => [
+        converter(key),
+        convertKeys(value, converter),
+      ]),
+    )
+  }
+  return obj
+}
+
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
   headers: {
@@ -12,18 +33,26 @@ apiClient.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
+  if (config.data && typeof config.data === 'object') {
+    config.data = convertKeys(config.data, toCamelCase)
+  }
   return config
 })
 
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    if (response.data && typeof response.data === 'object') {
+      response.data = convertKeys(response.data, toSnakeCase)
+    }
+    return response
+  },
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('token')
       window.location.href = '/login'
     }
     return Promise.reject(error)
-  }
+  },
 )
 
 export default apiClient

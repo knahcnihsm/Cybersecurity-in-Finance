@@ -15,14 +15,14 @@ export interface User {
   id: string
   username: string
   email: string
-  fullName: string
+  full_name: string
   role: 'ADMIN' | 'CISO' | 'ANALYST' | 'VIEWER'
 }
 
 export interface LoginResponse {
   token: string
-  refreshToken: string
-  expiresIn: number
+  refresh_token: string
+  expires_in: number
   user: User
 }
 

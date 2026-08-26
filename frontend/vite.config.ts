@@ -9,6 +9,9 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  build: {
+    assetsDir: '_static',
+  },
   server: {
     port: 3000,
     proxy: {
