@@ -2,6 +2,7 @@ package com.cybergate.asset.controller;
 
 import com.cybergate.asset.dto.AssetCreateRequest;
 import com.cybergate.asset.dto.AssetDTO;
+import com.cybergate.asset.model.Asset;
 import com.cybergate.asset.model.AssetType;
 import com.cybergate.asset.model.AssetDependency;
 import com.cybergate.asset.repository.AssetDependencyRepository;

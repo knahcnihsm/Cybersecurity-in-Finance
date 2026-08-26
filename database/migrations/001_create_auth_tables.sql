@@ -18,8 +18,8 @@ CREATE TABLE IF NOT EXISTS auth.audit_logs (
     action          VARCHAR(100) NOT NULL,
     resource_type   VARCHAR(50),
     resource_id     VARCHAR(50),
-    details         JSONB,
-    ip_address      INET,
+    details         TEXT,
+    ip_address      VARCHAR(45),
     created_at      TIMESTAMP DEFAULT NOW()
 );
 

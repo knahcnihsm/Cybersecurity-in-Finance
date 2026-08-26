@@ -8,6 +8,39 @@ spring:
     gateway:
       default-filters:
         - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_FIRST
+      routes:
+        - id: auth-service
+          uri: http://${AUTH_SERVICE_HOST:auth-service}:8081
+          predicates:
+            - Path=/api/auth/**
+        - id: asset-service
+          uri: http://${ASSET_SERVICE_HOST:asset-service}:8082
+          predicates:
+            - Path=/api/assets/**
+        - id: vulnerability-service
+          uri: http://${VULNERABILITY_SERVICE_HOST:vulnerability-service}:8083
+          predicates:
+            - Path=/api/vulnerabilities/**
+        - id: control-service
+          uri: http://${CONTROL_SERVICE_HOST:control-service}:8084
+          predicates:
+            - Path=/api/controls/**
+        - id: ingestion-service
+          uri: http://${INGESTION_SERVICE_HOST:ingestion-service}:8085
+          predicates:
+            - Path=/api/ingestion/**
+        - id: risk-engine
+          uri: http://${RISK_ENGINE_HOST:risk-engine}:8090
+          predicates:
+            - Path=/api/risk/**
+        - id: investment-optimizer
+          uri: http://${INVESTMENT_OPTIMIZER_HOST:investment-optimizer}:8091
+          predicates:
+            - Path=/api/investment/**
+        - id: ai-service
+          uri: http://${AI_SERVICE_HOST:ai-service}:8092
+          predicates:
+            - Path=/api/ai/**
   data:
     redis:
       url: ${REDIS_URL:redis://localhost:6379}

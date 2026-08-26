@@ -13,6 +13,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
+    networks:
+      - cyberrisk-net
 
   # ─── Backend: Java Services ──────────────────────
   api-gateway:
@@ -33,9 +35,12 @@ services:
       - INVESTMENT_URL=http://investment-optimizer:8091
       - AI_SERVICE_URL=http://ai-service:8092
       - JWT_SECRET=${JWT_SECRET}
+      - REDIS_URL=redis://redis:6379
     depends_on:
-      - auth-service
-      - redis
+      redis:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
     networks:
       - cyberrisk-net
 
@@ -47,7 +52,9 @@ services:
       - "8081:8081"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - DATABASE_URL=${DATABASE_URL}
+      - DATABASE_URL=jdbc:postgresql://ep-bitter-morning-azdy5wi1-pooler.c-3.ap-southeast-1.aws.neon.tech:5432/neondb?sslmode=require
+      - DB_USER=neondb_owner
+      - DB_PASSWORD=npg_5tPI6aKwZJxq
       - JWT_SECRET=${JWT_SECRET}
       - JWT_EXPIRY=${JWT_EXPIRY:-900000}
       - JWT_REFRESH_EXPIRY=${JWT_REFRESH_EXPIRY:-604800000}
@@ -64,7 +71,9 @@ services:
       - "8082:8082"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - DATABASE_URL=${DATABASE_URL}
+      - DATABASE_URL=jdbc:postgresql://ep-bitter-morning-azdy5wi1-pooler.c-3.ap-southeast-1.aws.neon.tech:5432/neondb?sslmode=require
+      - DB_USER=neondb_owner
+      - DB_PASSWORD=npg_5tPI6aKwZJxq
     depends_on:
       - redis
     networks:
@@ -78,7 +87,9 @@ services:
       - "8083:8083"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - DATABASE_URL=${DATABASE_URL}
+      - DATABASE_URL=jdbc:postgresql://ep-bitter-morning-azdy5wi1-pooler.c-3.ap-southeast-1.aws.neon.tech:5432/neondb?sslmode=require
+      - DB_USER=neondb_owner
+      - DB_PASSWORD=npg_5tPI6aKwZJxq
     depends_on:
       - redis
     networks:
@@ -92,7 +103,9 @@ services:
       - "8084:8084"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - DATABASE_URL=${DATABASE_URL}
+      - DATABASE_URL=jdbc:postgresql://ep-bitter-morning-azdy5wi1-pooler.c-3.ap-southeast-1.aws.neon.tech:5432/neondb?sslmode=require
+      - DB_USER=neondb_owner
+      - DB_PASSWORD=npg_5tPI6aKwZJxq
     depends_on:
       - redis
     networks:
@@ -106,7 +119,9 @@ services:
       - "8085:8085"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - DATABASE_URL=${DATABASE_URL}
+      - DATABASE_URL=jdbc:postgresql://ep-bitter-morning-azdy5wi1-pooler.c-3.ap-southeast-1.aws.neon.tech:5432/neondb?sslmode=require&currentSchema=public
+      - DB_USER=neondb_owner
+      - DB_PASSWORD=npg_5tPI6aKwZJxq
       - REDIS_URL=redis://redis:6379
       - RISK_ENGINE_URL=http://risk-engine:8090
     depends_on:
