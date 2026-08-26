@@ -30,12 +30,16 @@ public class AssetController {
     private final AssetRepository assetRepository;
 
     @GetMapping
-    public ResponseEntity<List<AssetDTO>> listAssets(
+    public ResponseEntity<Map<String, Object>> listAssets(
             @RequestParam(required = false) AssetType assetType,
             @RequestParam(required = false) String department,
             @RequestParam(required = false) Boolean internetExposed,
             @RequestParam(required = false) Integer minCriticality) {
-        return ResponseEntity.ok(assetService.listAssets(assetType, department, internetExposed, minCriticality));
+        List<AssetDTO> assets = assetService.listAssets(assetType, department, internetExposed, minCriticality);
+        Map<String, Object> response = new HashMap<>();
+        response.put("data", assets);
+        response.put("total", assets.size());
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping
