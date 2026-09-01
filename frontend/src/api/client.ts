@@ -36,6 +36,9 @@ apiClient.interceptors.request.use((config) => {
   if (config.data && typeof config.data === 'object') {
     config.data = convertKeys(config.data, toCamelCase)
   }
+  if (config.params && typeof config.params === 'object') {
+    config.params = convertKeys(config.params, toCamelCase)
+  }
   return config
 })
 

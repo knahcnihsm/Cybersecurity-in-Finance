@@ -5,6 +5,9 @@ import DataTable from '@/components/common/DataTable'
 import SeverityBadge from '@/components/common/SeverityBadge'
 import VulnerabilityPieChart from '@/components/charts/VulnerabilityPieChart'
 import LoadingSpinner from '@/components/common/LoadingSpinner'
+import EventSimulator from '@/components/insights/EventSimulator'
+import AttackPathPanel from '@/components/insights/AttackPathPanel'
+import BlastRadiusPanel from '@/components/insights/BlastRadiusPanel'
 import type { Vulnerability, Severity } from '@/types/vulnerability'
 import { Shield, ShieldCheck, ShieldAlert, ShieldX, ShieldQuestion } from 'lucide-react'
 
@@ -17,8 +20,8 @@ interface SeverityCount {
 
 interface ControlCoverageItem {
   type: string
-  covered: number
-  total: number
+  achieved: number
+  potential: number
 }
 
 export default function SecurityDashboard() {
@@ -26,24 +29,37 @@ export default function SecurityDashboard() {
   const [stats, setStats] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(true)
   const [controls, setControls] = useState<ControlCoverageItem[]>([])
+  const [coverage, setCoverage] = useState(0)
 
   useEffect(() => {
     Promise.all([
       vulnerabilityApi.list({ page: 1, size: 20 }),
       vulnerabilityApi.getStats(),
       controlApi.getCoverage(),
+      controlApi.list(),
     ])
-      .then(([vulnRes, statsRes, covRes]) => {
+      .then(([vulnRes, statsRes, covRes, controlListRes]) => {
         setVulns(vulnRes.data.data)
         setStats(statsRes.data.by_severity)
-        setControls([
-          { type: 'MFA', covered: Math.floor(Math.random() * 20 + 10), total: 30 },
-          { type: 'EDR', covered: Math.floor(Math.random() * 15 + 5), total: 25 },
-          { type: 'PATCH', covered: Math.floor(Math.random() * 25 + 5), total: 35 },
-          { type: 'FW', covered: Math.floor(Math.random() * 10 + 5), total: 15 },
-          { type: 'WAF', covered: Math.floor(Math.random() * 8 + 2), total: 10 },
-          { type: 'DLP', covered: Math.floor(Math.random() * 6 + 2), total: 10 },
-        ])
+        setCoverage(covRes.data.coverage_percentage ?? 0)
+
+        const controlList = controlListRes.data ?? []
+        const byType = new Map<string, number>()
+        const types = new Set<string>()
+        for (const c of controlList) {
+          types.add(c.control_type)
+          byType.set(c.control_type, (byType.get(c.control_type) ?? 0) + 1)
+        }
+        const total = controlList.length || 1
+        setControls(
+          Array.from(types)
+            .map((type) => ({
+              type,
+              achieved: (byType.get(type) ?? 0) / total,
+              potential: 1,
+            }))
+            .slice(0, 8)
+        )
       })
       .catch(() => {})
       .finally(() => setLoading(false))
@@ -53,26 +69,26 @@ export default function SecurityDashboard() {
     {
       label: 'Critical',
       count: stats['CRITICAL'] ?? 0,
-      color: 'bg-red-50 text-red-700 border-red-200',
-      icon: <ShieldX className="h-5 w-5 text-red-500" />,
+      color: 'bg-status-critical/10 text-status-critical border-status-critical/30',
+      icon: <ShieldX className="h-5 w-5 text-status-critical" />,
     },
     {
       label: 'High',
       count: stats['HIGH'] ?? 0,
-      color: 'bg-orange-50 text-orange-700 border-orange-200',
-      icon: <ShieldAlert className="h-5 w-5 text-orange-500" />,
+      color: 'bg-status-high/10 text-status-high border-status-high/30',
+      icon: <ShieldAlert className="h-5 w-5 text-status-high" />,
     },
     {
       label: 'Medium',
       count: stats['MEDIUM'] ?? 0,
-      color: 'bg-yellow-50 text-yellow-700 border-yellow-200',
-      icon: <ShieldQuestion className="h-5 w-5 text-yellow-500" />,
+      color: 'bg-status-medium/10 text-status-medium border-status-medium/30',
+      icon: <ShieldQuestion className="h-5 w-5 text-status-medium" />,
     },
     {
       label: 'Low',
       count: stats['LOW'] ?? 0,
-      color: 'bg-green-50 text-green-700 border-green-200',
-      icon: <ShieldCheck className="h-5 w-5 text-green-500" />,
+      color: 'bg-status-low/10 text-status-low border-status-low/30',
+      icon: <ShieldCheck className="h-5 w-5 text-status-low" />,
     },
   ]
 
@@ -90,14 +106,14 @@ export default function SecurityDashboard() {
     { key: 'status', label: 'Status', render: (v: unknown) => {
       const status = v as string
       const colorMap: Record<string, string> = {
-        OPEN: 'bg-red-100 text-red-700',
-        IN_PROGRESS: 'bg-yellow-100 text-yellow-700',
-        REMEDIATED: 'bg-green-100 text-green-700',
-        ACCEPTED: 'bg-gray-100 text-gray-700',
-        FALSE_POSITIVE: 'bg-blue-100 text-blue-700',
+        OPEN: 'bg-status-critical/15 text-status-critical',
+        IN_PROGRESS: 'bg-status-medium/15 text-status-medium',
+        REMEDIATED: 'bg-status-low/15 text-status-low',
+        ACCEPTED: 'bg-bg-hover text-text-secondary',
+        FALSE_POSITIVE: 'bg-status-info/15 text-status-info',
       }
       return (
-        <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${colorMap[status] ?? 'bg-gray-100 text-gray-700'}`}>
+        <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${colorMap[status] ?? 'bg-bg-hover text-text-secondary'}`}>
           {status}
         </span>
       )
@@ -107,7 +123,7 @@ export default function SecurityDashboard() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">Security Dashboard</h1>
+      <h1 className="text-2xl font-bold text-text-primary">Command Center</h1>
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         {severityCards.map((card) => (
@@ -125,10 +141,16 @@ export default function SecurityDashboard() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <EventSimulator />
+        <AttackPathPanel />
+        <BlastRadiusPanel />
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
-          <div className="rounded-xl border border-gray-200 bg-white shadow-sm">
-            <div className="border-b border-gray-200 px-6 py-4">
-              <h3 className="text-sm font-semibold text-gray-900">Recent Vulnerabilities</h3>
+          <div className="cyber-card">
+            <div className="border-b border-border-default px-6 py-4">
+              <h3 className="text-sm font-semibold text-text-primary">Recent Vulnerabilities</h3>
             </div>
             <DataTable
               columns={columns}
@@ -139,26 +161,28 @@ export default function SecurityDashboard() {
           </div>
         </div>
         <div className="space-y-6">
-          <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-            <h3 className="mb-2 text-sm font-semibold text-gray-900">Severity Distribution</h3>
+          <div className="cyber-card p-6">
+            <h3 className="mb-2 text-sm font-semibold text-text-primary">Severity Distribution</h3>
             <VulnerabilityPieChart />
           </div>
-          <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-            <h3 className="mb-4 text-sm font-semibold text-gray-900">Control Coverage</h3>
+          <div className="cyber-card p-6">
+            <h3 className="mb-4 text-sm font-semibold text-text-primary">Control Coverage</h3>
+            <div className="mb-3 rounded-lg bg-accent-primary/10 p-3 text-center">
+              <p className="text-2xl font-bold text-accent-primary">{coverage.toFixed(0)}%</p>
+              <p className="text-[11px] text-accent-primary/70">assets with controls</p>
+            </div>
             <div className="space-y-3">
               {controls.map((c) => {
-                const pct = c.total > 0 ? (c.covered / c.total) * 100 : 0
+                const pct = c.potential > 0 ? (c.achieved / c.potential) * 100 : 0
                 return (
                   <div key={c.type}>
-                    <div className="flex justify-between text-xs text-gray-600">
+                    <div className="flex justify-between text-xs text-text-secondary">
                       <span>{c.type}</span>
-                      <span>
-                        {c.covered}/{c.total} ({pct.toFixed(0)}%)
-                      </span>
+                      <span>{pct.toFixed(0)}% reduction achieved</span>
                     </div>
-                    <div className="mt-1 h-2 rounded-full bg-gray-200">
+                    <div className="mt-1 h-2 rounded-full bg-bg-hover">
                       <div
-                        className="h-2 rounded-full bg-brand-500 transition-all"
+                        className="h-2 rounded-full bg-accent-primary transition-all"
                         style={{ width: `${pct}%` }}
                       />
                     </div>

@@ -1,11 +1,18 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional
 from datetime import datetime
 from uuid import UUID
 
 
+def _to_camel(s: str) -> str:
+    parts = s.split('_')
+    return parts[0] + ''.join(p.capitalize() for p in parts[1:])
+
+
 class RiskCalculationResponse(BaseModel):
-    id: UUID
+    model_config = ConfigDict(alias_generator=_to_camel, populate_by_name=True, from_attributes=True)
+
+    id: Optional[UUID] = None
     asset_id: UUID
     asset_name: Optional[str] = None
     risk_score: float
@@ -16,14 +23,13 @@ class RiskCalculationResponse(BaseModel):
     risk_factors: Optional[dict] = None
     control_reduction: float = 0.0
     residual_risk: float = 0.0
-    calculated_at: datetime
+    calculated_at: Optional[datetime] = None
     version: int = 1
-
-    class Config:
-        from_attributes = True
 
 
 class EnterpriseRiskResponse(BaseModel):
+    model_config = ConfigDict(alias_generator=_to_camel, populate_by_name=True)
+
     total_eal: float
     total_assets: int
     total_vulnerabilities: int
@@ -37,6 +43,8 @@ class EnterpriseRiskResponse(BaseModel):
 
 
 class EALResponse(BaseModel):
+    model_config = ConfigDict(alias_generator=_to_camel, populate_by_name=True)
+
     total_eal: float
     asset_eals: list[dict]
     breakdown_by_type: dict
@@ -45,6 +53,8 @@ class EALResponse(BaseModel):
 
 
 class ScenarioRequest(BaseModel):
+    model_config = ConfigDict(alias_generator=_to_camel, populate_by_name=True)
+
     changes: list[dict] = Field(
         ...,
         description="List of changes to simulate. Each: {type, asset_id?, control_type?, value}",
@@ -57,6 +67,8 @@ class ScenarioRequest(BaseModel):
 
 
 class ScenarioResponse(BaseModel):
+    model_config = ConfigDict(alias_generator=_to_camel, populate_by_name=True)
+
     current_eal: float
     simulated_eal: float
     eal_reduction: float
@@ -69,6 +81,8 @@ class ScenarioResponse(BaseModel):
 
 
 class RiskEventRequest(BaseModel):
+    model_config = ConfigDict(alias_generator=_to_camel, populate_by_name=True)
+
     event_type: str
     asset_id: Optional[str] = None
     source: str = "UNKNOWN"
@@ -76,6 +90,8 @@ class RiskEventRequest(BaseModel):
 
 
 class RiskTrendResponse(BaseModel):
+    model_config = ConfigDict(alias_generator=_to_camel, populate_by_name=True)
+
     dates: list[str]
     eal_values: list[float]
     risk_scores: list[float]
@@ -83,6 +99,8 @@ class RiskTrendResponse(BaseModel):
 
 
 class RiskDriver(BaseModel):
+    model_config = ConfigDict(alias_generator=_to_camel, populate_by_name=True)
+
     asset_id: str
     asset_name: str
     asset_type: str

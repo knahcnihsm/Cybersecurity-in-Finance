@@ -1,4 +1,5 @@
 import { clsx } from 'clsx'
+import { scoreHex } from '@/theme/severity'
 
 interface RiskAsset {
   name: string
@@ -16,17 +17,10 @@ const likelihoodLabels = ['High', 'Very High', 'Medium', 'Low', 'Lowest']
 
 function getCellColor(row: number, col: number): string {
   const severity = (4 - row) + col
-  if (severity >= 7) return 'bg-red-500/20 border-red-300'
-  if (severity >= 5) return 'bg-orange-400/20 border-orange-300'
-  if (severity >= 3) return 'bg-yellow-400/20 border-yellow-300'
-  return 'bg-green-400/20 border-green-300'
-}
-
-function getDotColor(score: number): string {
-  if (score >= 80) return 'bg-red-600'
-  if (score >= 60) return 'bg-orange-500'
-  if (score >= 40) return 'bg-yellow-500'
-  return 'bg-green-500'
+  if (severity >= 7) return 'bg-status-critical/10 border-status-critical/40'
+  if (severity >= 5) return 'bg-status-high/10 border-status-high/40'
+  if (severity >= 3) return 'bg-status-medium/10 border-status-medium/40'
+  return 'bg-status-low/5 border-border-default'
 }
 
 function mapToCell(probability: number, impact: number): { row: number; col: number } {
@@ -47,17 +41,17 @@ export default function RiskMatrix({ assets }: RiskMatrixProps) {
   })
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-      <h3 className="mb-4 text-sm font-semibold text-gray-900">Risk Matrix (Likelihood × Impact)</h3>
+    <div className="cyber-card p-6">
+      <h3 className="mb-4 text-sm font-semibold text-text-primary">Risk Matrix (Likelihood × Impact)</h3>
       <div className="overflow-x-auto">
         <table className="border-collapse">
           <thead>
             <tr>
-              <th className="px-3 py-2 text-xs font-medium text-gray-500">Likelihood ↓ / Impact →</th>
+              <th className="px-3 py-2 text-xs font-medium text-text-tertiary">Likelihood ↓ / Impact →</th>
               {impactLabels.map((label) => (
                 <th
                   key={label}
-                  className="w-24 border px-3 py-2 text-center text-xs font-medium text-gray-500"
+                  className="w-24 border border-border-subtle px-3 py-2 text-center text-xs font-medium text-text-secondary"
                 >
                   {label}
                 </th>
@@ -67,7 +61,7 @@ export default function RiskMatrix({ assets }: RiskMatrixProps) {
           <tbody>
             {likelihoodLabels.map((label, rowIdx) => (
               <tr key={label}>
-                <td className="border px-3 py-2 text-xs font-medium text-gray-500">
+                <td className="border border-border-subtle px-3 py-2 text-xs font-medium text-text-secondary">
                   {label}
                 </td>
                 {impactLabels.map((_, colIdx) => (
@@ -82,13 +76,11 @@ export default function RiskMatrix({ assets }: RiskMatrixProps) {
                       {cellAssets[rowIdx][colIdx].map((a) => (
                         <div
                           key={a.name}
-                          className={clsx(
-                            'group relative h-3 w-3 rounded-full',
-                            getDotColor(a.risk_score)
-                          )}
+                          className="group relative h-3 w-3 rounded-full transition-transform hover:scale-125"
+                          style={{ backgroundColor: scoreHex(a.risk_score) }}
                           title={`${a.name} (Score: ${a.risk_score})`}
                         >
-                          <div className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1 hidden -translate-x-1/2 whitespace-nowrap rounded bg-gray-900 px-2 py-1 text-xs text-white group-hover:block">
+                          <div className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1 hidden -translate-x-1/2 whitespace-nowrap rounded-md border border-border-default bg-bg-elevated px-2 py-1 text-xs text-text-primary shadow-card group-hover:block">
                             {a.name}: {a.risk_score.toFixed(1)}
                           </div>
                         </div>

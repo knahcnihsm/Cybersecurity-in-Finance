@@ -1,12 +1,4 @@
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from 'recharts'
+import EChart, { type EChartsCoreOption } from '@/components/charts/EChart'
 import type { ROSIResult } from '@/types/investment'
 
 interface InvestmentROSIChartProps {
@@ -17,21 +9,40 @@ export default function InvestmentROSIChart({ data }: InvestmentROSIChartProps) 
   const chartData = data.map((d) => ({
     name: d.control_name,
     rosi: d.rosi_percent,
-    netBenefit: d.net_benefit,
   }))
 
+  const option: EChartsCoreOption = {
+    color: ['#38BDF8'],
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: { type: 'shadow' },
+      backgroundColor: '#161C25',
+      borderColor: '#252C37',
+      textStyle: { color: '#F1F5F9' },
+      valueFormatter: (value: unknown) => `${Number(value).toFixed(1)}%`,
+    },
+    grid: { left: 45, right: 20, top: 20, bottom: 90 },
+    xAxis: {
+      type: 'category',
+      data: chartData.map((d) => d.name),
+      axisLabel: { fontSize: 10, color: '#64748B', interval: 0, rotate: 30 },
+      axisLine: { lineStyle: { color: '#252C37' } },
+    },
+    yAxis: { type: 'value', axisLabel: { fontSize: 11, color: '#64748B' } },
+    series: [
+      {
+        type: 'bar',
+        data: chartData.map((d) => d.rosi),
+        barMaxWidth: 34,
+        itemStyle: { borderRadius: [4, 4, 0, 0], color: '#38BDF8' },
+      },
+    ],
+  }
+
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-      <h3 className="mb-4 text-sm font-semibold text-gray-900">ROSI by Control</h3>
-      <ResponsiveContainer width="100%" height={300}>
-        <BarChart data={chartData}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-          <XAxis dataKey="name" tick={{ fontSize: 10 }} angle={-30} textAnchor="end" height={80} />
-          <YAxis tick={{ fontSize: 11 }} />
-          <Tooltip formatter={(value: number) => `${value.toFixed(1)}%`} />
-          <Bar dataKey="rosi" fill="#4f46e5" radius={[4, 4, 0, 0]} />
-        </BarChart>
-      </ResponsiveContainer>
+    <div className="cyber-card p-6">
+      <h3 className="mb-4 text-sm font-semibold text-text-primary">ROSI by Control</h3>
+      <EChart option={option} height={300} />
     </div>
   )
 }

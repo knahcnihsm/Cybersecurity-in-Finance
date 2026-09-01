@@ -31,41 +31,46 @@ export default function DataTable<T extends Record<string, unknown>>({
 }: DataTableProps<T>) {
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <LoadingSpinner size="lg" />
+      <div className="space-y-2 p-4">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className="animate-pulse rounded-md bg-bg-hover" style={{ height: 40 }} />
+        ))}
       </div>
     )
   }
 
   if (!data.length) {
     return (
-      <div className="py-12 text-center text-sm text-gray-500">{emptyMessage}</div>
+      <div className="px-6 py-12 text-center">
+        <p className="text-sm text-text-primary">{emptyMessage}</p>
+        <p className="mt-1 text-xs text-text-tertiary">No records available for the current view.</p>
+      </div>
     )
   }
 
   return (
     <div className="overflow-x-auto">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
+      <table className="min-w-full divide-y divide-border-subtle">
+        <thead className="bg-bg-surface">
           <tr>
             {columns.map((col) => (
               <th
                 key={col.key}
-                className={`px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 ${col.className ?? ''}`}
+                className={`px-4 py-3 text-left text-[11px] font-medium uppercase tracking-wider text-text-tertiary ${col.className ?? ''}`}
               >
                 {col.label}
               </th>
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-200 bg-white">
+        <tbody className="divide-y divide-border-subtle bg-bg-surface">
           {data.map((row, i) => (
             <tr
               key={i}
-              className={`${i % 2 === 0 ? '' : 'bg-gray-50/50'} hover:bg-brand-50 transition-colors`}
+              className={`${i % 2 === 0 ? '' : 'bg-bg-elevated'} transition-colors hover:bg-bg-hover`}
             >
               {columns.map((col) => (
-                <td key={col.key} className={`px-4 py-3 text-sm text-gray-700 ${col.className ?? ''}`}>
+                <td key={col.key} className={`px-4 py-3 text-sm text-text-secondary ${col.className ?? ''}`}>
                   {col.render
                     ? col.render(getNestedValue(row, col.key), row)
                     : (getNestedValue(row, col.key) as React.ReactNode) ?? '—'}

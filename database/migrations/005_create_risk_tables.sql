@@ -38,11 +38,11 @@ CREATE TABLE IF NOT EXISTS risk.risk_events (
     created_at      TIMESTAMP DEFAULT NOW()
 );
 
-CREATE INDEX idx_risk_calc_asset ON risk.risk_calculations(asset_id);
-CREATE INDEX idx_risk_calc_score ON risk.risk_calculations(risk_score DESC);
-CREATE INDEX idx_risk_calc_category ON risk.risk_calculations(risk_category);
-CREATE INDEX idx_risk_calc_date ON risk.risk_calculations(calculated_at DESC);
-CREATE INDEX idx_risk_snapshots_date ON risk.risk_snapshots(snapshot_date);
-CREATE INDEX idx_risk_snapshots_asset ON risk.risk_snapshots(asset_id);
-CREATE INDEX idx_risk_events_date ON risk.risk_events(created_at DESC);
-CREATE INDEX idx_risk_events_type ON risk.risk_events(event_type);
+CREATE INDEX IF NOT EXISTS idx_risk_calc_asset ON risk.risk_calculations(asset_id);
+CREATE INDEX IF NOT EXISTS idx_risk_calc_score ON risk.risk_calculations(risk_score DESC);
+CREATE INDEX IF NOT EXISTS idx_risk_calc_category ON risk.risk_calculations(risk_category);
+CREATE INDEX IF NOT EXISTS idx_risk_calc_date ON risk.risk_calculations(calculated_at DESC);
+CREATE INDEX IF NOT EXISTS idx_risk_snapshots_date ON risk.risk_snapshots(snapshot_date);
+CREATE INDEX IF NOT EXISTS idx_risk_snapshots_asset ON risk.risk_snapshots(asset_id);
+CREATE INDEX IF NOT EXISTS idx_risk_events_date ON risk.risk_events(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_risk_events_type ON risk.risk_events(event_type);

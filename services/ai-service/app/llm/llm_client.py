@@ -1,8 +1,16 @@
+import re
+
 from app.config import settings
 
 
 class LLMClient:
-    """Unified LLM client with mock fallback."""
+    """Unified LLM client with mock fallback.
+
+    Mock responses are strictly data-driven: every number is interpolated from
+    the values the endpoint actually loaded from the platform. If a question
+    cannot be answered from that data, the mock says so instead of inventing
+    figures.
+    """
 
     def __init__(self):
         self.use_mock = settings.use_mock_llm
@@ -11,7 +19,7 @@ class LLMClient:
 
     async def generate(self, system_prompt: str, user_prompt: str) -> str:
         if self.use_mock or not self.api_key:
-            return self._mock_response(user_prompt)
+            return self._mock_from_data(user_prompt)
         return await self._openai_response(system_prompt, user_prompt)
 
     async def _openai_response(self, system_prompt: str, user_prompt: str) -> str:
@@ -29,104 +37,117 @@ class LLMClient:
             )
             return response.choices[0].message.content
         except Exception as e:
-            return self._mock_response(user_prompt)
+            return self._mock_from_data(user_prompt)
 
-    def _mock_response(self, user_prompt: str) -> str:
+    def _mock_from_data(self, user_prompt: str) -> str:
+        data = self._extract(user_prompt)
         prompt_lower = user_prompt.lower()
 
         if "biggest risk" in prompt_lower or "top risk" in prompt_lower:
+            if data["drivers"]:
+                head = data["drivers"][0]
+                return (
+                    f"Based on current quantification data, the biggest financial risk "
+                    f"exposure is {head['name']}, with a risk score of {head['score']} and "
+                    f"an Expected Annual Loss of ₹{head['eal']:,.0f}. "
+                    f"The top {len(data['drivers'])} risk drivers account for "
+                    f"₹{sum(d['eal'] for d in data['drivers']):,.0f} of portfolio EAL. "
+                    "Remediating the highest-EAL driver first gives the largest "
+                    "financial return on the available budget."
+                )
+            return "No risk driver data is available to answer this precisely."
+
+        if "recommend" in prompt_lower or "suggest" in prompt_lower:
+            if not data["drivers"]:
+                return "No risk driver data is available to base recommendations on."
+            lines = ["Based on the actual risk data, priority actions:"]
+            for i, d in enumerate(data["drivers"][:3], start=1):
+                lines.append(
+                    f"{i}. Remediate the top open vulnerabilities on {d['name']} "
+                    f"(risk score {d['score']}, EAL ₹{d['eal']:,.0f}/yr)."
+                )
+            lines.append(
+                f"Estimated total EAL at stake: ₹{data.get('total_eal', 0):,.0f} — "
+                "reduce it by focusing investment on these drivers."
+            )
+            return "\n".join(lines)
+
+        if "invest" in prompt_lower or "budget" in prompt_lower:
             return (
-                "Based on current risk quantification data, your organization's "
-                "biggest financial risk exposure comes from payment infrastructure "
-                "assets. The payment gateway server (PAY-SRV-001) has an Expected "
-                "Annual Loss of approximately ₹2.4 Crore due to a combination of "
-                "critical vulnerabilities (CVSS 9.8), internet exposure, and "
-                "RESTRICTED data sensitivity.\n\n"
-                "Key contributing factors:\n"
-                "1. SQL Injection vulnerability (CVE-2026-1001) — CVSS 9.8\n"
-                "2. Internet-facing exposure with public IP\n"
-                "3. RESTRICTED data classification (PCI-DSS scope)\n"
-                "4. Incomplete MFA coverage on payment systems\n\n"
-                "Recommended immediate action: Remediate CVE-2026-1001 and deploy "
-                "WAF rules as interim mitigation. This alone could reduce the "
-                "payment infrastructure EAL by approximately 40%."
+                f"Current enterprise EAL is ₹{data.get('total_eal', 0):,.0f}. "
+                "Investment should target the controls that reduce the highest-EAL "
+                "drivers first (see the optimizer for rupee-ranked portfolios). "
+                "I do not compute precise portfolio returns here — that is produced "
+                "by the investment optimizer with actual per-control deltas."
             )
 
-        elif "recommend" in prompt_lower or "suggest" in prompt_lower:
-            return (
-                "Based on current risk posture analysis, I recommend the following "
-                "priority actions:\n\n"
-                "PRIORITY 1 — Immediate (This Week):\n"
-                "• Remediate CVE-2026-1001 (SQL Injection on payment server)\n"
-                "• Enable MFA on Identity Provider admin console\n"
-                "• Rotate exposed AWS credentials from CVE-2026-1002\n\n"
-                "PRIORITY 2 — Short-term (This Month):\n"
-                "• Deploy WAF in front of customer web portal\n"
-                "• Apply path traversal fix for file upload handler\n"
-                "• Disable TLS 1.0/1.1 on VPN concentrator\n\n"
-                "PRIORITY 3 — Medium-term (This Quarter):\n"
-                "• Implement network segmentation for payment infrastructure\n"
-                "• Enable backup encryption and immutability\n"
-                "• Deploy EDR on all production servers\n\n"
-                "Estimated impact of PRIORITY 1 actions: ₹1.8 Crore EAL reduction\n"
-                "Total estimated impact of all actions: ₹4.2 Crore EAL reduction"
-            )
+        if "summary" in prompt_lower or "executive" in prompt_lower:
+            lines = [
+                "EXECUTIVE CYBER RISK SUMMARY (from live data)",
+                "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+                f"Enterprise Risk Score: {data.get('risk_score', 'N/A')}/100",
+                f"Expected Annual Loss: ₹{data.get('total_eal', 0):,.0f}",
+                f"Total Assets Monitored: {data.get('assets', 'N/A')}",
+                f"Open Vulnerabilities: {data.get('vulns', 'N/A')}",
+                "",
+                "Top risk concentrations:",
+            ]
+            for i, d in enumerate(data["drivers"][:3], start=1):
+                lines.append(f"{i}. {d['name']} — ₹{d['eal']:,.0f}/yr (score {d['score']})")
+            return "\n".join(lines)
 
-        elif "invest" in prompt_lower or "budget" in prompt_lower:
-            return (
-                "Investment Optimization Analysis:\n\n"
-                "With a ₹1 Crore budget, the optimal allocation would be:\n"
-                "1. Critical Patch Management — ₹15 Lakh (highest ROI)\n"
-                "2. MFA Implementation — ₹20 Lakh\n"
-                "3. Network Segmentation — ₹30 Lakh\n"
-                "4. Backup Improvement — ₹15 Lakh\n"
-                "5. EDR Enhancement — ₹15 Lakh\n\n"
-                "Total: ₹95 Lakh | Remaining: ₹5 Lakh\n\n"
-                "Expected Result:\n"
-                "• Current EAL: ₹8.5 Crore\n"
-                "• Post-investment EAL: ₹4.3 Crore\n"
-                "• Risk Reduction: ₹4.2 Crore (49.4%)\n"
-                "• Portfolio ROSI: 352% over 3 years\n\n"
-                "This allocation prioritizes controls that affect the most assets "
-                "and have the highest risk reduction per rupee invested."
-            )
+        return (
+            f"I can only answer from the platform data. Currently: enterprise risk "
+            f"score {data.get('risk_score', 'n/a')}/100, EAL ₹{data.get('total_eal', 0):,.0f}, "
+            f"across {data.get('assets', 'n/a')} assets with {data.get('vulns', 'n/a')} open "
+            "vulnerabilities. Ask about top risks, recommendations, investment "
+            "strategy, or an executive summary."
+        )
 
-        elif "summary" in prompt_lower or "executive" in prompt_lower:
-            return (
-                "EXECUTIVE CYBER RISK SUMMARY\n"
-                "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
-                "Current Risk Posture:\n"
-                "• Enterprise Risk Score: 72/100 (HIGH)\n"
-                "• Expected Annual Loss: ₹8.5 Crore\n"
-                "• Total Assets Monitored: 12\n"
-                "• Open Vulnerabilities: 87 (12 Critical)\n"
-                "• Control Coverage: 40%\n\n"
-                "Top 3 Risk Concentrations:\n"
-                "1. Payment Infrastructure — ₹2.4 Cr exposure\n"
-                "2. Customer Database — ₹1.8 Cr exposure\n"
-                "3. Cloud Management — ₹0.9 Cr exposure\n\n"
-                "Recommended Investment: ₹95 Lakh\n"
-                "Expected Risk Reduction: ₹4.2 Crore\n"
-                "Portfolio ROSI: 352%\n\n"
-                "Critical Action Required:\n"
-                "• 12 critical vulnerabilities need immediate remediation\n"
-                "• MFA is disabled on IdP admin console\n"
-                "• Backup systems lack encryption"
-            )
+    def _extract(self, prompt: str) -> dict:
+        def _first(pattern: str):
+            m = re.search(pattern, prompt)
+            return m.group(1) if m else None
 
-        else:
-            return (
-                f"I understand your question: '{user_prompt[:100]}...'\n\n"
-                "Based on the current risk data, here is my analysis:\n\n"
-                "• Your organization currently has an Expected Annual Loss of ₹8.5 Crore\n"
-                "• The highest-risk assets are payment infrastructure and customer database\n"
-                "• 40% control coverage is below the recommended 70%\n\n"
-                "For more specific guidance, please ask about:\n"
-                "- Risk analysis (\"What is our biggest risk?\")\n"
-                "- Investment optimization (\"How should we invest our budget?\")\n"
-                "- Executive summary (\"Give me an executive summary\")\n"
-                "- Recommendations (\"What should we fix first?\")"
-            )
+        def _first_float(pattern: str, default=0.0):
+            m = re.search(pattern, prompt)
+            return float(m.group(1).replace(",", "")) if m else default
+
+        total_eal = None
+        m = re.search(r"Total (?:Expected Annual Loss|EAL): ?₹?([\d,]+)", prompt)
+        if m:
+            total_eal = float(m.group(1).replace(",", ""))
+        m = re.search(r"Enterprise Risk Score: ?([\d.]+)", prompt)
+        risk_score = m.group(1) if m else None
+
+        assets = None
+        m = re.search(r"Total Assets(?: Monitored)?: ?(\d+)", prompt)
+        if m:
+            assets = m.group(1)
+        vulns = None
+        m = re.search(r"Open Vulnerabilities?: ?(\d+)", prompt)
+        if m:
+            vulns = m.group(1)
+
+        drivers = []
+        driver_re = re.compile(
+            r"[-•]\s*([A-Za-z0-9 &()\-]+): (?:Score )?([\d.]+)(?:, EAL ₹([\d,]+))?",
+            re.IGNORECASE,
+        )
+        for m in driver_re.finditer(prompt):
+            drivers.append({
+                "name": m.group(1).strip(),
+                "score": m.group(2),
+                "eal": float(m.group(3).replace(",", "")) if m.group(3) else 0,
+            })
+
+        return {
+            "total_eal": total_eal if total_eal is not None else _first_float(r"Total EAL: ?₹?([\d.]+)"),
+            "risk_score": risk_score,
+            "assets": assets,
+            "vulns": vulns,
+            "drivers": drivers[:5],
+        }
 
 
 llm_client = LLMClient()

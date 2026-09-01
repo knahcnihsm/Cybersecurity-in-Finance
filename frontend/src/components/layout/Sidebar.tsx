@@ -15,7 +15,7 @@ import { clsx } from 'clsx'
 
 const navItems = [
   { label: 'Executive Dashboard', icon: LayoutDashboard, to: '/' },
-  { label: 'Security Dashboard', icon: ShieldAlert, to: '/security' },
+  { label: 'Command Center', icon: ShieldAlert, to: '/security' },
   { label: 'Risk Analysis', icon: BarChart3, to: '/risk' },
   { label: 'Assets', icon: Server, to: '/assets' },
   { label: 'Vulnerabilities', icon: Bug, to: '/vulnerabilities' },

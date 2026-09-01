@@ -2,6 +2,7 @@ package com.cybergate.auth.service;
 
 import com.cybergate.auth.dto.*;
 import com.cybergate.auth.model.AuditLog;
+import com.cybergate.auth.model.Role;
 import com.cybergate.auth.model.User;
 import com.cybergate.auth.repository.AuditLogRepository;
 import com.cybergate.auth.repository.UserRepository;
@@ -31,8 +32,8 @@ public class AuthService {
         User user = userRepository.findByUsername(request.username())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        String token = jwtService.generateToken(user.getUsername());
-        String refreshToken = jwtService.generateRefreshToken(user.getUsername());
+        String token = jwtService.generateToken(user.getUsername(), user.getRole().name());
+        String refreshToken = jwtService.generateRefreshToken(user.getUsername(), user.getRole().name());
 
         auditLog(user.getId(), "LOGIN", "USER", user.getId().toString(), "Successful login");
 
@@ -57,14 +58,14 @@ public class AuthService {
                 .email(request.email())
                 .passwordHash(passwordEncoder.encode(request.password()))
                 .fullName(request.fullName())
-                .role(request.role())
+                .role(Role.ANALYST)
                 .isActive(true)
                 .build();
 
         user = userRepository.save(user);
 
-        String token = jwtService.generateToken(user.getUsername());
-        String refreshToken = jwtService.generateRefreshToken(user.getUsername());
+        String token = jwtService.generateToken(user.getUsername(), user.getRole().name());
+        String refreshToken = jwtService.generateRefreshToken(user.getUsername(), user.getRole().name());
 
         auditLog(user.getId(), "REGISTER", "USER", user.getId().toString(), "New user registered");
 
@@ -85,8 +86,8 @@ public class AuthService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        String token = jwtService.generateToken(user.getUsername());
-        String refreshToken = jwtService.generateRefreshToken(user.getUsername());
+        String token = jwtService.generateToken(user.getUsername(), user.getRole().name());
+        String refreshToken = jwtService.generateRefreshToken(user.getUsername(), user.getRole().name());
 
         return new LoginResponse(
                 token,

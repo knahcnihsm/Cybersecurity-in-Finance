@@ -11,7 +11,7 @@ interface AssetStats {
 }
 
 interface CriticalityResponse {
-  asset_id: string
+  id: string
   criticality_score: number
 }
 
@@ -40,7 +40,7 @@ export const assetApi = {
     apiClient.post<AssetDependency>(`/assets/${assetId}/dependencies`, data),
 
   getCriticality: (assetId: string) =>
-    apiClient.get<CriticalityResponse>(`/assets/${assetId}/criticality`),
+    apiClient.get<CriticalityResponse>(`/assets/criticality/${assetId}`),
 
   getStats: () => apiClient.get<AssetStats>('/assets/stats'),
 }

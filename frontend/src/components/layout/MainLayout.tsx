@@ -1,5 +1,6 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/authStore'
+import { useWSConnectionState } from '@/hooks/useWebSocket'
 import {
   LayoutDashboard,
   Shield,
@@ -29,43 +30,56 @@ const navItems = [
   { to: '/ai', icon: Bot, label: 'AI Assistant' },
 ]
 
+const connectionStyle: Record<string, { dot: string; label: string; text: string }> = {
+  LIVE: { dot: 'bg-status-live', label: 'LIVE', text: 'text-status-live' },
+  CONNECTING: { dot: 'bg-status-medium animate-pulse', label: 'CONNECTING', text: 'text-status-medium' },
+  RECONNECTING: { dot: 'bg-status-medium animate-pulse', label: 'RECONNECTING', text: 'text-status-medium' },
+  DISCONNECTED: { dot: 'bg-status-critical', label: 'DISCONNECTED', text: 'text-status-critical' },
+}
+
 export default function MainLayout() {
   const { user, logout } = useAuthStore()
   const navigate = useNavigate()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
+  const wsState = useWSConnectionState()
 
   const handleLogout = () => {
     logout()
     navigate('/login')
   }
 
+  const conn = connectionStyle[wsState] ?? connectionStyle.DISCONNECTED
+
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
+    <div className="flex h-screen overflow-hidden bg-bg-app">
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-30 bg-black/50 lg:hidden"
+          className="fixed inset-0 z-30 bg-black/60 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       <aside
         className={clsx(
-          'fixed inset-y-0 left-0 z-40 w-64 bg-brand-900 text-white transition-transform lg:static lg:translate-x-0',
+          'fixed inset-y-0 left-0 z-40 w-[232px] border-r border-border-subtle bg-bg-sidebar text-white transition-transform lg:static lg:translate-x-0',
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
-        <div className="flex h-16 items-center justify-between px-4">
-          <div className="flex items-center gap-2">
-            <Shield className="h-7 w-7 text-brand-300" />
-            <span className="text-lg font-bold">CyberRisk</span>
+        <div className="flex h-[60px] items-center justify-between px-4">
+          <div className="flex items-center gap-2.5">
+            <Shield className="h-6 w-6 text-accent-primary" />
+            <div className="leading-tight">
+              <span className="block text-[13px] font-bold tracking-wide text-text-primary">CyberRisk</span>
+              <span className="block text-[10px] font-medium uppercase tracking-[0.08em] text-text-tertiary">Twin</span>
+            </div>
           </div>
           <button className="lg:hidden" onClick={() => setSidebarOpen(false)}>
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <nav className="mt-4 space-y-1 px-3">
+        <nav className="mt-2 space-y-0.5 px-3">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
@@ -74,53 +88,65 @@ export default function MainLayout() {
               onClick={() => setSidebarOpen(false)}
               className={({ isActive }) =>
                 clsx(
-                  'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+                  'relative flex h-[34px] items-center gap-3 rounded-md px-3 text-[13px] font-medium transition-colors duration-150',
                   isActive
-                    ? 'bg-brand-700 text-white'
-                    : 'text-brand-200 hover:bg-brand-800 hover:text-white'
+                    ? 'bg-bg-surface text-text-primary'
+                    : 'text-text-secondary hover:bg-bg-hover hover:text-text-primary'
                 )
               }
             >
-              <item.icon className="h-5 w-5 flex-shrink-0" />
-              {item.label}
+              {({ isActive }) => (
+                <>
+                  {isActive && (
+                    <span className="absolute left-0 top-1/2 h-5 w-[2px] -translate-y-1/2 rounded-r bg-accent-primary" />
+                  )}
+                  <item.icon className="h-4 w-4 flex-shrink-0" strokeWidth={1.75} />
+                  {item.label}
+                </>
+              )}
             </NavLink>
           ))}
         </nav>
 
-        <div className="absolute bottom-0 w-full border-t border-brand-700 p-3">
+        <div className="absolute bottom-0 w-full border-t border-border-subtle p-3">
           <button
             onClick={handleLogout}
-            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-brand-200 hover:bg-brand-800 hover:text-white"
+            className="flex h-[34px] w-full items-center gap-3 rounded-md px-3 text-[13px] font-medium text-text-secondary transition-colors hover:bg-bg-hover hover:text-text-primary"
           >
-            <LogOut className="h-5 w-5" />
+            <LogOut className="h-4 w-4 flex-shrink-0" strokeWidth={1.75} />
             Sign Out
           </button>
         </div>
       </aside>
 
       <div className="flex flex-1 flex-col overflow-hidden">
-        <header className="flex h-16 items-center justify-between border-b border-gray-200 bg-white px-4 lg:px-6">
+        <header className="flex h-[60px] items-center justify-between border-b border-border-subtle bg-bg-sidebar px-5">
           <button
             className="lg:hidden"
             onClick={() => setSidebarOpen(true)}
           >
-            <Menu className="h-6 w-6 text-gray-600" />
+            <Menu className="h-5 w-5 text-text-secondary" />
           </button>
 
           <div className="flex-1" />
 
+          <div className="mr-3 hidden items-center gap-1.5 rounded-full border border-border-default bg-bg-surface px-2.5 py-1 sm:flex">
+            <span className={clsx('h-2 w-2 rounded-full', conn.dot)} />
+            <span className={clsx('text-[11px] font-semibold tracking-wide', conn.text)}>{conn.label}</span>
+          </div>
+
           <div className="relative">
             <button
               onClick={() => setProfileOpen(!profileOpen)}
-              className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm hover:bg-gray-100"
+              className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm hover:bg-bg-hover"
             >
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-600 text-xs font-bold text-white">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-primary/15 text-xs font-bold text-accent-primary">
                 {user?.full_name?.charAt(0) ?? 'U'}
               </div>
-              <span className="hidden font-medium text-gray-700 md:block">
+              <span className="hidden font-medium text-text-primary md:block">
                 {user?.full_name ?? 'User'}
               </span>
-              <ChevronDown className="h-4 w-4 text-gray-400" />
+              <ChevronDown className="h-4 w-4 text-text-tertiary" />
             </button>
 
             {profileOpen && (
@@ -129,26 +155,26 @@ export default function MainLayout() {
                   className="fixed inset-0 z-40"
                   onClick={() => setProfileOpen(false)}
                 />
-                <div className="absolute right-0 top-full z-50 mt-1 w-56 rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
-                  <div className="border-b border-gray-100 px-4 py-3">
-                    <p className="text-sm font-medium text-gray-900">
+                <div className="absolute right-0 top-full z-50 mt-1 w-56 rounded-lg border border-border-default bg-bg-elevated py-1 shadow-modal">
+                  <div className="border-b border-border-subtle px-4 py-3">
+                    <p className="text-sm font-medium text-text-primary">
                       {user?.full_name}
                     </p>
-                    <p className="text-xs text-gray-500">{user?.email}</p>
+                    <p className="text-xs text-text-tertiary">{user?.email}</p>
                   </div>
                   <button
                     onClick={() => {
                       navigate('/settings')
                       setProfileOpen(false)
                     }}
-                    className="flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                    className="flex w-full items-center gap-2 px-4 py-2 text-sm text-text-secondary hover:bg-bg-hover hover:text-text-primary"
                   >
                     <Settings className="h-4 w-4" />
                     Settings
                   </button>
                   <button
                     onClick={handleLogout}
-                    className="flex w-full items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                    className="flex w-full items-center gap-2 px-4 py-2 text-sm text-status-critical hover:bg-bg-hover"
                   >
                     <LogOut className="h-4 w-4" />
                     Sign Out
@@ -159,7 +185,7 @@ export default function MainLayout() {
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-4 lg:p-6">
+        <main className="flex-1 overflow-y-auto p-6">
           <Outlet />
         </main>
       </div>

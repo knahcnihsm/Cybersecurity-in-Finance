@@ -1,4 +1,5 @@
 import { IndianRupee, TrendingDown, TrendingUp } from 'lucide-react'
+import { clsx } from 'clsx'
 
 interface EALCardProps {
   eal: number
@@ -16,28 +17,31 @@ export default function EALCard({ eal, previousEal }: EALCardProps) {
   const improved = diff < 0
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+    <div className="cyber-card p-4">
       <div className="flex items-center justify-between">
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-100">
-          <IndianRupee className="h-5 w-5 text-orange-600" />
+        <div className="flex h-9 w-9 items-center justify-center rounded-md bg-status-high/10">
+          <IndianRupee className="h-4 w-4 text-status-high" strokeWidth={1.75} />
         </div>
         {diff !== 0 && (
           <span
-            className={`flex items-center gap-1 text-sm font-medium ${improved ? 'text-green-600' : 'text-red-600'}`}
+            className={clsx(
+              'flex items-center gap-1 text-xs font-medium',
+              improved ? 'text-status-low' : 'text-status-critical'
+            )}
           >
             {improved ? (
-              <TrendingDown className="h-4 w-4" />
+              <TrendingDown className="h-3.5 w-3.5" />
             ) : (
-              <TrendingUp className="h-4 w-4" />
+              <TrendingUp className="h-3.5 w-3.5" />
             )}
             {formatINR(Math.abs(diff))}
           </span>
         )}
       </div>
-      <p className="mt-4 text-sm font-medium text-gray-500">
+      <p className="mt-3 text-xs font-medium uppercase tracking-wider text-text-tertiary">
         Expected Annual Loss
       </p>
-      <p className="mt-1 text-3xl font-bold text-orange-600">{formatINR(eal)}</p>
+      <p className="mt-1 text-3xl font-semibold text-status-high">{formatINR(eal)}</p>
     </div>
   )
 }

@@ -23,4 +23,32 @@ export const riskApi = {
 
   getAssetRisk: (assetId: string) =>
     apiClient.get<RiskCalculation>(`/risk/asset/${assetId}`),
+
+  getRiskGraph: () => apiClient.get('/risk/graph'),
+
+  getBlastRadius: (assetId: string) =>
+    apiClient.get(`/risk/blast-radius/${assetId}`),
+
+  getAttackPath: () => apiClient.get('/risk/attack-path'),
+
+  getDataQuality: () => apiClient.get('/risk/data-quality'),
+
+  getDataQualityForAsset: (assetId: string) =>
+    apiClient.get(`/risk/data-quality/${assetId}`),
+
+  getLossDistribution: (simulations = 5000) =>
+    apiClient.get(`/risk/loss-distribution?simulations=${simulations}`),
+
+  getCompliance: () => apiClient.get('/risk/compliance'),
+
+  getForecast: (horizonMonths = 12) =>
+    apiClient.get(`/risk/forecast?horizon_months=${horizonMonths}`),
+
+  createSnapshot: () => apiClient.post('/risk/snapshot'),
+
+  getSnapshots: () => apiClient.get('/risk/snapshots'),
+
+  getAuditChain: () => apiClient.get('/risk/audit/chain'),
+
+  verifyAuditChain: () => apiClient.get('/risk/audit/verify'),
 }

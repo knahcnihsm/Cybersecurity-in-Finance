@@ -10,14 +10,14 @@ export const investmentApi = {
 
   listControls: () => apiClient.get<SecurityControl[]>('/investment/controls'),
 
-  getROSI: (controlId: string, params?: { time_horizon_years?: number }) =>
-    apiClient.get<ROSIResult>(`/investment/controls/${controlId}/rosi`, { params }),
+  getROSSummary: (params?: { time_horizon_years?: number }) =>
+    apiClient.get<ROSIResult[]>('/investment/rosi', { params }),
 
   createPlan: (data: {
     name: string
-    total_budget_inr: number
-    items: { control_id: string; allocation_inr: number }[]
-  }) => apiClient.post<InvestmentPlan>('/investment/plans', data),
+    budget_inr: number
+    items: { control_id: string; allocation_inr: number; risk_reduction?: number; expected_rosi?: number; priority?: number }[]
+  }) => apiClient.post<{ id: string; name: string; status: string; created_at: string }>('/investment/plans', data),
 
   listPlans: () => apiClient.get<InvestmentPlan[]>('/investment/plans'),
 

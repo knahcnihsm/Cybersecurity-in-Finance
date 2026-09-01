@@ -29,6 +29,6 @@ CREATE TABLE IF NOT EXISTS control.asset_controls (
     UNIQUE(asset_id, control_id)
 );
 
-CREATE INDEX idx_controls_type ON control.security_controls(control_type);
-CREATE INDEX idx_asset_controls_asset ON control.asset_controls(asset_id);
-CREATE INDEX idx_asset_controls_status ON control.asset_controls(status);
+CREATE INDEX IF NOT EXISTS idx_controls_type ON control.security_controls(control_type);
+CREATE INDEX IF NOT EXISTS idx_asset_controls_asset ON control.asset_controls(asset_id);
+CREATE INDEX IF NOT EXISTS idx_asset_controls_status ON control.asset_controls(status);

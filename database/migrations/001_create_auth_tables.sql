@@ -23,19 +23,19 @@ CREATE TABLE IF NOT EXISTS auth.audit_logs (
     created_at      TIMESTAMP DEFAULT NOW()
 );
 
-CREATE INDEX idx_audit_logs_user ON auth.audit_logs(user_id);
-CREATE INDEX idx_audit_logs_action ON auth.audit_logs(action);
-CREATE INDEX idx_audit_logs_created ON auth.audit_logs(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_user ON auth.audit_logs(user_id);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_action ON auth.audit_logs(action);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_created ON auth.audit_logs(created_at DESC);
 
 -- Seed default admin user (password: admin123 — BCrypt hash)
 INSERT INTO auth.users (username, email, password_hash, full_name, role)
-VALUES ('admin', 'admin@cyberrisk.local', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'System Admin', 'ADMIN')
+VALUES ('admin', 'admin@cyberrisk.local', '$2a$10$Hs4VV45M35wQ3v.dKp5llOPJs8G7DyEdlUMmpBWV4JQqMrsKWF4nS', 'System Admin', 'ADMIN')
 ON CONFLICT (username) DO NOTHING;
 
 INSERT INTO auth.users (username, email, password_hash, full_name, role)
-VALUES ('ciso', 'ciso@cyberrisk.local', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Chief InfoSec Officer', 'CISO')
+VALUES ('ciso', 'ciso@cyberrisk.local', '$2a$10$Hs4VV45M35wQ3v.dKp5llOPJs8G7DyEdlUMmpBWV4JQqMrsKWF4nS', 'Chief InfoSec Officer', 'CISO')
 ON CONFLICT (username) DO NOTHING;
 
 INSERT INTO auth.users (username, email, password_hash, full_name, role)
-VALUES ('analyst', 'analyst@cyberrisk.local', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Security Analyst', 'ANALYST')
+VALUES ('analyst', 'analyst@cyberrisk.local', '$2a$10$Hs4VV45M35wQ3v.dKp5llOPJs8G7DyEdlUMmpBWV4JQqMrsKWF4nS', 'Security Analyst', 'ANALYST')
 ON CONFLICT (username) DO NOTHING;

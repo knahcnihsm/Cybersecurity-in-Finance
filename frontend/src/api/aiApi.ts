@@ -5,9 +5,9 @@ export const aiApi = {
   query: (question: string) =>
     apiClient.post<AIQueryResponse>('/ai/query', { question }),
 
-  getRecommendations: () =>
-    apiClient.get<AIRecommendation>('/ai/recommendations'),
+  getRecommendations: (focusArea?: string, context = 'general') =>
+    apiClient.post<AIRecommendation>('/ai/recommend', { context, focus_area: focusArea }),
 
-  explainAsset: (assetId: string) =>
-    apiClient.get<AIExplainResponse>(`/ai/explain/${assetId}`),
+  explainAsset: (assetId: string, detailLevel = 'standard') =>
+    apiClient.post<AIExplainResponse>(`/ai/explain/risk/${assetId}`, { asset_id: assetId, detail_level: detailLevel }),
 }

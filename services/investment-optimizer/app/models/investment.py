@@ -1,8 +1,50 @@
-from sqlalchemy import Column, String, Numeric, DateTime, ForeignKey, Integer, func
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Column, String, Numeric, DateTime, ForeignKey, Integer, func, Boolean, Text
+from sqlalchemy.dialects.postgresql import UUID, JSONB
 import uuid
 
 from app.database import Base
+
+
+class Asset(Base):
+    __tablename__ = "assets"
+    __table_args__ = {"schema": "asset"}
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name = Column(String(255), nullable=False)
+    asset_type = Column(String(50), nullable=False)
+    environment = Column(String(20), default="PRODUCTION")
+    internet_exposed = Column(Boolean, default=False)
+    criticality_score = Column(Integer, default=50)
+    data_sensitivity = Column(String(20), default="INTERNAL")
+    business_value_inr = Column(Numeric(15, 2), nullable=False, default=0)
+
+
+class Vulnerability(Base):
+    __tablename__ = "vulnerabilities"
+    __table_args__ = {"schema": "vuln"}
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    cve_id = Column(String(20))
+    title = Column(String(500), nullable=False)
+    cvss_score = Column(Numeric(3, 1), nullable=False)
+    severity = Column(String(10), nullable=False)
+    exploitability = Column(Numeric(3, 1), default=0)
+    affected_asset = Column(UUID(as_uuid=True), ForeignKey("asset.assets.id"))
+    internet_exposed = Column(Boolean, default=False)
+    status = Column(String(20), default="OPEN")
+
+
+class AssetControl(Base):
+    __tablename__ = "asset_controls"
+    __table_args__ = {"schema": "control"}
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    asset_id = Column(UUID(as_uuid=True), ForeignKey("asset.assets.id"))
+    control_id = Column(UUID(as_uuid=True), ForeignKey("control.security_controls.id"))
+    status = Column(String(20), default="PLANNED")
+    coverage_score = Column(Numeric(5, 4), default=0)
+    effectiveness_score = Column(Numeric(5, 4), default=0)
+    maturity_level = Column(Integer, default=1)
 
 
 class InvestmentPlan(Base):

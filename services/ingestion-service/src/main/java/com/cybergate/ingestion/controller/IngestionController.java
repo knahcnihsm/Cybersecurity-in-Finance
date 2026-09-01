@@ -64,4 +64,31 @@ public class IngestionController {
         List<SecurityEvent> events = ingestionService.simulateEvents(count);
         return ResponseEntity.status(HttpStatus.CREATED).body(events);
     }
+
+    @PostMapping("/simulate/vulnerability")
+    public ResponseEntity<SecurityEvent> simulateVulnerability(@RequestBody Map<String, Object> body) {
+        SecurityEvent event = ingestionService.simulateVulnerability(
+                (String) body.get("assetId"),
+                ((Number) body.getOrDefault("cvss", 8.0)).doubleValue(),
+                (String) body.get("cveId"),
+                (String) body.get("title"));
+        return ResponseEntity.status(HttpStatus.CREATED).body(event);
+    }
+
+    @PostMapping("/simulate/remediate")
+    public ResponseEntity<SecurityEvent> remediateVulnerability(@RequestBody Map<String, Object> body) {
+        SecurityEvent event = ingestionService.remediateVulnerability(
+                (String) body.get("assetId"),
+                (String) body.get("cveId"));
+        return ResponseEntity.status(HttpStatus.CREATED).body(event);
+    }
+
+    @PostMapping("/simulate/control")
+    public ResponseEntity<SecurityEvent> changeControl(@RequestBody Map<String, Object> body) {
+        SecurityEvent event = ingestionService.changeControl(
+                (String) body.get("assetId"),
+                (String) body.get("controlType"),
+                (String) body.get("status"));
+        return ResponseEntity.status(HttpStatus.CREATED).body(event);
+    }
 }

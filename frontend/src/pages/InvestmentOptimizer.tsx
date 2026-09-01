@@ -35,30 +35,27 @@ export default function InvestmentOptimizer() {
       const res = await investmentApi.optimize({ budget_inr: budget })
       setResult(res.data)
 
-      const rosiPromises = res.data.items.map((item) =>
-        investmentApi.getROSI(item.control_id).catch(() => null)
-      )
-      const rosiResults = await Promise.all(rosiPromises)
-      setRosiData(rosiResults.filter((r) => r !== null).map((r) => r!.data))
+      const rosiRes = await investmentApi.getROSSummary()
+      setRosiData(rosiRes.data)
     } catch {}
     setOptimizing(false)
   }
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">Investment Optimizer</h1>
+      <h1 className="text-2xl font-bold text-text-primary">Investment Optimizer</h1>
 
-      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-        <h2 className="mb-4 text-sm font-semibold text-gray-900">Budget Configuration</h2>
+      <div className="cyber-card p-6">
+        <h2 className="mb-4 text-sm font-semibold text-text-primary">Budget Configuration</h2>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
           <div className="flex-1">
-            <label className="mb-1 block text-xs text-gray-500">Security Budget (₹)</label>
+            <label className="mb-1 block text-xs text-text-tertiary">Security Budget (₹)</label>
             <input
               type="number"
               value={budget}
               onChange={(e) => setBudget(Number(e.target.value))}
               step={100000}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              className="cyber-input w-full"
             />
             <input
               type="range"
@@ -67,9 +64,9 @@ export default function InvestmentOptimizer() {
               step={500000}
               value={budget}
               onChange={(e) => setBudget(Number(e.target.value))}
-              className="mt-2 w-full accent-brand-600"
+              className="mt-2 w-full accent-accent-primary"
             />
-            <div className="flex justify-between text-xs text-gray-400">
+            <div className="flex justify-between text-xs text-text-tertiary">
               <span>₹10 L</span>
               <span>₹5 Cr</span>
             </div>
@@ -77,7 +74,7 @@ export default function InvestmentOptimizer() {
           <button
             onClick={runOptimize}
             disabled={optimizing}
-            className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
+            className="cyber-btn-primary"
           >
             {optimizing ? (
               <LoadingSpinner size="sm" className="border-white border-t-transparent" />
@@ -90,48 +87,48 @@ export default function InvestmentOptimizer() {
       {result && (
         <>
           <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
-            <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-              <div className="flex items-center gap-2 text-gray-500">
+            <div className="cyber-card p-4">
+              <div className="flex items-center gap-2 text-text-tertiary">
                 <Wallet className="h-4 w-4" />
                 <span className="text-xs">Total Budget</span>
               </div>
-              <p className="mt-1 text-lg font-bold text-gray-900">
+              <p className="mt-1 text-lg font-bold text-text-primary">
                 {formatINR(result.total_budget)}
               </p>
             </div>
-            <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-              <div className="flex items-center gap-2 text-gray-500">
-                <Wallet className="h-4 w-4 text-green-500" />
+            <div className="cyber-card p-4">
+              <div className="flex items-center gap-2 text-text-tertiary">
+                <Wallet className="h-4 w-4 text-status-low" />
                 <span className="text-xs">Allocated</span>
               </div>
-              <p className="mt-1 text-lg font-bold text-green-600">
+              <p className="mt-1 text-lg font-bold text-status-low">
                 {formatINR(result.total_allocated)}
               </p>
             </div>
-            <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-              <div className="flex items-center gap-2 text-gray-500">
-                <Wallet className="h-4 w-4 text-gray-400" />
+            <div className="cyber-card p-4">
+              <div className="flex items-center gap-2 text-text-tertiary">
+                <Wallet className="h-4 w-4 text-text-tertiary" />
                 <span className="text-xs">Remaining</span>
               </div>
-              <p className="mt-1 text-lg font-bold text-gray-600">
+              <p className="mt-1 text-lg font-bold text-text-secondary">
                 {formatINR(result.remaining_budget)}
               </p>
             </div>
-            <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-              <div className="flex items-center gap-2 text-gray-500">
-                <TrendingDown className="h-4 w-4 text-orange-500" />
+            <div className="cyber-card p-4">
+              <div className="flex items-center gap-2 text-text-tertiary">
+                <TrendingDown className="h-4 w-4 text-status-high" />
                 <span className="text-xs">Risk Reduction</span>
               </div>
-              <p className="mt-1 text-lg font-bold text-orange-600">
+              <p className="mt-1 text-lg font-bold text-status-high">
                 {formatINR(result.expected_risk_reduction)}
               </p>
             </div>
-            <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-              <div className="flex items-center gap-2 text-gray-500">
-                <Percent className="h-4 w-4 text-brand-500" />
+            <div className="cyber-card p-4">
+              <div className="flex items-center gap-2 text-text-tertiary">
+                <Percent className="h-4 w-4 text-accent-primary" />
                 <span className="text-xs">ROSI</span>
               </div>
-              <p className="mt-1 text-lg font-bold text-brand-600">
+              <p className="mt-1 text-lg font-bold text-accent-primary">
                 {result.portfolio_rosi.toFixed(1)}%
               </p>
             </div>
@@ -139,55 +136,55 @@ export default function InvestmentOptimizer() {
 
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             <InvestmentROSIChart data={rosiData} />
-            <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-              <h3 className="mb-2 text-sm font-semibold text-gray-900">Optimization Summary</h3>
-              <p className="text-sm text-gray-600">{result.summary}</p>
+            <div className="cyber-card p-6">
+              <h3 className="mb-2 text-sm font-semibold text-text-primary">Optimization Summary</h3>
+              <p className="text-sm text-text-secondary">{result.summary}</p>
             </div>
           </div>
 
-          <div className="rounded-xl border border-gray-200 bg-white shadow-sm">
-            <div className="border-b border-gray-200 px-6 py-4">
-              <h3 className="text-sm font-semibold text-gray-900">Allocation by Control</h3>
+          <div className="cyber-card">
+            <div className="border-b border-border-subtle px-6 py-4">
+              <h3 className="text-sm font-semibold text-text-primary">Allocation by Control</h3>
             </div>
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+              <table className="min-w-full divide-y divide-border-subtle">
+                <thead className="bg-bg-surface">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-tertiary">
                       Priority
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-tertiary">
                       Control
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-tertiary">
                       Type
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-tertiary">
                       Allocation
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-tertiary">
                       Risk Reduction
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-tertiary">
                       ROSI %
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200 bg-white">
-                  {result.items.map((item) => (
-                    <tr key={item.control_id} className="hover:bg-brand-50 transition-colors">
-                      <td className="px-4 py-3 text-sm font-bold text-gray-900">#{item.priority}</td>
-                      <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                <tbody className="divide-y divide-border-subtle bg-bg-surface">
+                  {(result.items ?? []).map((item) => (
+                    <tr key={item.control_id} className="transition-colors hover:bg-bg-hover">
+                      <td className="px-4 py-3 text-sm font-bold text-text-primary">#{item.priority}</td>
+                      <td className="px-4 py-3 text-sm font-medium text-text-primary">
                         {item.control_name}
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-700">{item.control_type}</td>
-                      <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                      <td className="px-4 py-3 text-sm text-text-secondary">{item.control_type}</td>
+                      <td className="px-4 py-3 text-sm font-medium text-text-primary">
                         {formatINR(item.allocation_inr)}
                       </td>
-                      <td className="px-4 py-3 text-sm text-orange-600">
+                      <td className="px-4 py-3 text-sm text-status-high">
                         {formatINR(item.risk_reduction)}
                       </td>
-                      <td className="px-4 py-3 text-sm font-bold text-brand-600">
+                      <td className="px-4 py-3 text-sm font-bold text-accent-primary">
                         {item.expected_rosi.toFixed(1)}%
                       </td>
                     </tr>
@@ -197,16 +194,16 @@ export default function InvestmentOptimizer() {
             </div>
           </div>
 
-          <button className="inline-flex items-center gap-2 rounded-lg border border-green-300 bg-green-50 px-4 py-2 text-sm font-semibold text-green-700 hover:bg-green-100">
+          <button className="rounded-lg border border-status-low/30 bg-status-low/10 px-4 py-2 text-sm font-semibold text-status-low hover:bg-status-low/15">
             <Save className="h-4 w-4" />
             Save as Plan
           </button>
         </>
       )}
 
-      <div className="rounded-xl border border-gray-200 bg-white shadow-sm">
-        <div className="border-b border-gray-200 px-6 py-4">
-          <h3 className="text-sm font-semibold text-gray-900">Available Security Controls</h3>
+      <div className="cyber-card">
+        <div className="border-b border-border-subtle px-6 py-4">
+          <h3 className="text-sm font-semibold text-text-primary">Available Security Controls</h3>
         </div>
         <div className="overflow-x-auto">
           {controlsLoading ? (
@@ -214,44 +211,44 @@ export default function InvestmentOptimizer() {
               <LoadingSpinner size="lg" />
             </div>
           ) : (
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-border-subtle">
+              <thead className="bg-bg-surface">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-tertiary">
                     Control
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-tertiary">
                     Type
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-tertiary">
                     Implementation Cost
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-tertiary">
                     Annual Maintenance
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-tertiary">
                     Max Risk Reduction
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-text-tertiary">
                     <Clock className="inline h-3 w-3" /> Time
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200 bg-white">
+              <tbody className="divide-y divide-border-subtle bg-bg-surface">
                 {controls.map((c) => (
-                  <tr key={c.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3 text-sm font-medium text-gray-900">{c.name}</td>
-                    <td className="px-4 py-3 text-sm text-gray-700">{c.control_type}</td>
-                    <td className="px-4 py-3 text-sm text-gray-700">
+                  <tr key={c.id} className="transition-colors hover:bg-bg-hover">
+                    <td className="px-4 py-3 text-sm font-medium text-text-primary">{c.name}</td>
+                    <td className="px-4 py-3 text-sm text-text-secondary">{c.control_type}</td>
+                    <td className="px-4 py-3 text-sm text-text-secondary">
                       {formatINR(c.implementation_cost)}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-700">
+                    <td className="px-4 py-3 text-sm text-text-secondary">
                       {formatINR(c.annual_maintenance)}/yr
                     </td>
-                    <td className="px-4 py-3 text-sm text-green-600">
+                    <td className="px-4 py-3 text-sm text-status-low">
                       {c.max_risk_reduction}%
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-700">
+                    <td className="px-4 py-3 text-sm text-text-secondary">
                       {c.implementation_time_days} days
                     </td>
                   </tr>

@@ -1,12 +1,4 @@
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from 'recharts'
+import EChart, { type EChartsCoreOption } from '@/components/charts/EChart'
 import { useEffect, useState } from 'react'
 import { riskApi } from '@/api/riskApi'
 import { IndianRupee } from 'lucide-react'
@@ -32,31 +24,46 @@ export default function FinancialExposureChart() {
 
   if (loading) {
     return (
-      <div className="flex h-64 items-center justify-center text-sm text-gray-500">
+      <div className="flex h-64 items-center justify-center text-sm text-text-tertiary">
         Loading...
       </div>
     )
   }
 
+  const option: EChartsCoreOption = {
+    color: ['#38BDF8'],
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: { type: 'shadow' },
+      backgroundColor: '#161C25',
+      borderColor: '#252C37',
+      textStyle: { color: '#F1F5F9' },
+      valueFormatter: (value: unknown) => `₹${Number(value).toLocaleString('en-IN')}`,
+    },
+    grid: { left: 130, right: 40, top: 20, bottom: 30 },
+    xAxis: { type: 'value', axisLabel: { fontSize: 11, color: '#64748B' } },
+    yAxis: {
+      type: 'category',
+      data: data.map((d) => d.name),
+      axisLabel: { fontSize: 11, color: '#94A3B8', width: 110, overflow: 'truncate' },
+    },
+    series: [
+      {
+        type: 'bar',
+        data: data.map((d) => d.value),
+        barMaxWidth: 22,
+        itemStyle: { borderRadius: [0, 4, 4, 0], color: '#38BDF8' },
+      },
+    ],
+  }
+
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+    <div className="cyber-card p-6">
       <div className="mb-4 flex items-center gap-2">
-        <IndianRupee className="h-5 w-5 text-orange-500" />
-        <h3 className="text-sm font-semibold text-gray-900">Financial Exposure by Department</h3>
+        <IndianRupee className="h-5 w-5 text-status-info" />
+        <h3 className="text-sm font-semibold text-text-primary">Financial Exposure by Department</h3>
       </div>
-      <ResponsiveContainer width="100%" height={300}>
-        <BarChart data={data} layout="vertical">
-          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-          <XAxis type="number" tick={{ fontSize: 11 }} />
-          <YAxis dataKey="name" type="category" width={120} tick={{ fontSize: 11 }} />
-          <Tooltip
-            formatter={(value: number) =>
-              `₹${value.toLocaleString('en-IN')}`
-            }
-          />
-          <Bar dataKey="value" fill="#f97316" radius={[0, 4, 4, 0]} />
-        </BarChart>
-      </ResponsiveContainer>
+      <EChart option={option} height={300} />
     </div>
   )
 }

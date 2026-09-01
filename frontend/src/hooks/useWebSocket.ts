@@ -1,39 +1,87 @@
-import { useEffect, useRef, useCallback } from 'react'
+import { useEffect, useRef, useCallback, useState } from 'react'
+import { Client } from '@stomp/stompjs'
+import SockJS from 'sockjs-client'
 import { useAuthStore } from '@/store/authStore'
 
-type WSMessage = {
+export type WSMessage = {
   type: string
   payload: unknown
 }
+
+export type WSConnectionState = 'DISCONNECTED' | 'CONNECTING' | 'RECONNECTING' | 'LIVE'
 
 type WSCallback = (msg: WSMessage) => void
 
 const listeners = new Set<WSCallback>()
 
-let ws: WebSocket | null = null
-let reconnectTimer: ReturnType<typeof setTimeout> | null = null
+let client: Client | null = null
+
+const connectionListeners = new Set<(state: WSConnectionState) => void>()
+
+function emitConnectionState(state: WSConnectionState) {
+  connectionListeners.forEach((cb) => cb(state))
+}
+
+export function useWSConnectionState(): WSConnectionState {
+  const [state, setState] = useState<WSConnectionState>('DISCONNECTED')
+
+  useEffect(() => {
+    const cb = (s: WSConnectionState) => setState(s)
+    connectionListeners.add(cb)
+    if (client) {
+      if (client.connected) setState('LIVE')
+      else if (client.active) setState('RECONNECTING')
+    }
+    return () => {
+      connectionListeners.delete(cb)
+    }
+  }, [])
+
+  return state
+}
 
 function connect() {
   const token = useAuthStore.getState().token
-  if (!token) return
-  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-  const host = window.location.host
-  ws = new WebSocket(`${protocol}//${host}/ws?token=${token}`)
+  const protocol = window.location.protocol === 'https:' ? 'https:' : 'http:'
+  const sock = new SockJS(`${protocol}//${window.location.host}/ws`)
 
-  ws.onmessage = (event) => {
-    try {
-      const msg: WSMessage = JSON.parse(event.data)
-      listeners.forEach((cb) => cb(msg))
-    } catch {}
-  }
+  client = new Client({
+    webSocketFactory: () => sock,
+    connectHeaders: token ? { Authorization: `Bearer ${token}` } : {},
+    reconnectDelay: 5000,
+    heartbeatIncoming: 10000,
+    heartbeatOutgoing: 10000,
+    debug: () => {},
+    onConnect: () => {
+      emitConnectionState('LIVE')
+      client?.subscribe('/topic/risk/updated', (message) => {
+        try {
+          const payload = JSON.parse(message.body)
+          listeners.forEach((cb) => cb({ type: 'risk:updated', payload }))
+        } catch {}
+      })
+      client?.subscribe('/topic/ingestion/event', (message) => {
+        try {
+          const payload = JSON.parse(message.body)
+          listeners.forEach((cb) => cb({ type: 'ingestion:event', payload }))
+        } catch {}
+      })
+    },
+    onWebSocketClose: () => {
+      emitConnectionState('RECONNECTING')
+    },
+    onStompError: () => {
+      emitConnectionState('RECONNECTING')
+    },
+  })
+  emitConnectionState('CONNECTING')
+  client.activate()
+}
 
-  ws.onclose = () => {
-    reconnectTimer = setTimeout(connect, 5000)
-  }
-
-  ws.onerror = () => {
-    ws?.close()
-  }
+function disconnect() {
+  emitConnectionState('DISCONNECTED')
+  client?.deactivate()
+  client = null
 }
 
 export function useWebSocket(onMessage?: WSCallback) {
@@ -50,10 +98,14 @@ export function useWebSocket(onMessage?: WSCallback) {
     }
   }, [onMessage])
 
-  const send = useCallback((msg: WSMessage) => {
-    if (ws?.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify(msg))
+  useEffect(() => {
+    return () => {
+      if (listeners.size === 0) disconnect()
     }
+  }, [])
+
+  const send = useCallback((msg: WSMessage) => {
+    client?.publish({ destination: '/app/subscribe', body: JSON.stringify(msg.payload ?? msg.type) })
   }, [])
 
   return { send }

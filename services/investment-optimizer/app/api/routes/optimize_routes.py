@@ -16,7 +16,7 @@ from app.schemas.optimize_schemas import (
 router = APIRouter(prefix="/api/investment", tags=["Investment"])
 
 
-@router.post("/optimize", response_model=OptimizeResponse)
+@router.post("/optimize")
 def optimize_budget(
     request: OptimizeRequest,
     db: Session = Depends(get_db),
@@ -25,7 +25,8 @@ def optimize_budget(
     result = optimizer.optimize(
         budget_inr=request.budget_inr,
         time_horizon_years=request.time_horizon_years,
-        max_per_control_percent=request.max_per_control_percent,
+        mode=request.mode,
+        target_eal_inr=request.target_eal_inr,
     )
     return result
 
@@ -47,7 +48,7 @@ def calculate_rosi(
     results = []
     for c in controls:
         total_cost = c["implementation_cost"] + c["annual_maintenance"] * time_horizon_years
-        risk_value = c["max_risk_reduction"] * 10000000
+        risk_value = c["eal_reduction"]
         net = risk_value - total_cost
         rosi = (net / total_cost * 100) if total_cost > 0 else 0
         payback = (total_cost / (risk_value / 12)) if risk_value > 0 else 999

@@ -26,6 +26,6 @@ CREATE TABLE IF NOT EXISTS investment.investment_items (
     created_at          TIMESTAMP DEFAULT NOW()
 );
 
-CREATE INDEX idx_investment_plan_status ON investment.investment_plans(status);
-CREATE INDEX idx_investment_plan_created ON investment.investment_plans(created_at DESC);
-CREATE INDEX idx_investment_items_plan ON investment.investment_items(plan_id);
+CREATE INDEX IF NOT EXISTS idx_investment_plan_status ON investment.investment_plans(status);
+CREATE INDEX IF NOT EXISTS idx_investment_plan_created ON investment.investment_plans(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_investment_items_plan ON investment.investment_items(plan_id);

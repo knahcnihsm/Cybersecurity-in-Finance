@@ -31,10 +31,10 @@ CREATE TABLE IF NOT EXISTS asset.asset_dependencies (
     UNIQUE(asset_id, depends_on_id)
 );
 
-CREATE INDEX idx_assets_criticality ON asset.assets(criticality_score DESC);
-CREATE INDEX idx_assets_type ON asset.assets(asset_type);
-CREATE INDEX idx_assets_environment ON asset.assets(environment);
-CREATE INDEX idx_assets_department ON asset.assets(department);
-CREATE INDEX idx_assets_exposed ON asset.assets(internet_exposed) WHERE internet_exposed = true;
-CREATE INDEX idx_asset_deps_asset ON asset.asset_dependencies(asset_id);
-CREATE INDEX idx_asset_deps_depends ON asset.asset_dependencies(depends_on_id);
+CREATE INDEX IF NOT EXISTS idx_assets_criticality ON asset.assets(criticality_score DESC);
+CREATE INDEX IF NOT EXISTS idx_assets_type ON asset.assets(asset_type);
+CREATE INDEX IF NOT EXISTS idx_assets_environment ON asset.assets(environment);
+CREATE INDEX IF NOT EXISTS idx_assets_department ON asset.assets(department);
+CREATE INDEX IF NOT EXISTS idx_assets_exposed ON asset.assets(internet_exposed) WHERE internet_exposed = true;
+CREATE INDEX IF NOT EXISTS idx_asset_deps_asset ON asset.asset_dependencies(asset_id);
+CREATE INDEX IF NOT EXISTS idx_asset_deps_depends ON asset.asset_dependencies(depends_on_id);

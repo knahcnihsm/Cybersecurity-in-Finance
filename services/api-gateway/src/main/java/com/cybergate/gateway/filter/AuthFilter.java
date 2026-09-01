@@ -27,7 +27,10 @@ public class AuthFilter implements GlobalFilter, Ordered {
 
     private static final List<String> EXCLUDED_PATHS = List.of(
             "/api/auth/login",
-            "/api/auth/register"
+            "/api/auth/register",
+            "/api/auth/refresh",
+            "/ws",
+            "/actuator/health"
     );
 
     @Value("${jwt.secret:cybergate-default-secret-key-for-jwt-token-signing-2024}")

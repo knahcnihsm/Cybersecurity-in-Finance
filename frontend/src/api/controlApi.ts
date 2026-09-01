@@ -3,29 +3,34 @@ import type { SecurityControl } from '../types/investment'
 
 interface ControlAsset {
   asset_id: string
-  asset_name: string
+  control_id: string
   status: string
-  applied_at: string | null
+  coverage_score: number | null
+  effectiveness_score: number | null
+  maturity_level: number | null
+  implemented_at: string | null
+  last_verified_at: string | null
 }
 
 interface ControlEffectiveness {
-  control_id: string
-  assets_covered: number
-  total_assets: number
-  risk_reduction_achieved: number
-  risk_reduction_potential: number
+  asset_id: string
+  overall_effectiveness: number
+  overall_coverage: number
+  controls_implemented: number
+  controls_total: number
+  average_maturity_level: number
 }
 
 interface ControlCoverage {
-  total_controls: number
-  assets_with_controls: number
-  total_assets: number
-  coverage_percent: number
+  total_asset_controls: number
+  implemented_controls: number
+  coverage_percentage: number
+  by_status: Record<string, number>
 }
 
 export const controlApi = {
-  list: (params?: { type?: string; page?: number; size?: number }) =>
-    apiClient.get<{ data: SecurityControl[]; total: number }>('/controls', { params }),
+  list: (params?: { controlType?: string }) =>
+    apiClient.get<SecurityControl[]>('/controls', { params }),
 
   create: (data: Partial<SecurityControl>) =>
     apiClient.post<SecurityControl>('/controls', data),
@@ -33,12 +38,12 @@ export const controlApi = {
   getByAsset: (assetId: string) =>
     apiClient.get<ControlAsset[]>(`/controls/asset/${assetId}`),
 
-  getEffectiveness: (controlId: string) =>
-    apiClient.get<ControlEffectiveness>(`/controls/${controlId}/effectiveness`),
+  getEffectiveness: (assetId: string) =>
+    apiClient.get<ControlEffectiveness>('/controls/effectiveness', { params: { assetId } }),
 
   getCoverage: () =>
     apiClient.get<ControlCoverage>('/controls/coverage'),
 
-  updateStatus: (controlId: string, assetId: string, status: string) =>
-    apiClient.put(`/controls/${controlId}/asset/${assetId}/status`, { status }),
+  updateAssetControlStatus: (assetControlId: string, status: string) =>
+    apiClient.put(`/controls/${assetControlId}/status`, null, { params: { status } }),
 }

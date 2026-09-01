@@ -1,13 +1,4 @@
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from 'recharts'
+import EChart, { type EChartsCoreOption } from '@/components/charts/EChart'
 import type { RiskTrend } from '@/types/risk'
 
 interface RiskTrendChartProps {
@@ -17,7 +8,7 @@ interface RiskTrendChartProps {
 export default function RiskTrendChart({ data }: RiskTrendChartProps) {
   if (!data) {
     return (
-      <div className="flex h-64 items-center justify-center text-sm text-gray-500">
+      <div className="flex h-64 items-center justify-center text-sm text-text-tertiary">
         No trend data available
       </div>
     )
@@ -27,47 +18,62 @@ export default function RiskTrendChart({ data }: RiskTrendChartProps) {
     date,
     riskScore: data.risk_scores[i],
     eal: data.eal_values[i],
-    vulns: data.vuln_counts[i],
   }))
 
+  const option: EChartsCoreOption = {
+    color: ['#38BDF8', '#818CF8'],
+    tooltip: {
+      trigger: 'axis',
+      backgroundColor: '#161C25',
+      borderColor: '#252C37',
+      textStyle: { color: '#F1F5F9' },
+      valueFormatter: (value: unknown, dataIndex: number) =>
+        dataIndex === 0 ? String(value) : `₹${Number(value).toLocaleString('en-IN')}`,
+    },
+    legend: { data: ['Risk Score', 'EAL'], textStyle: { color: '#94A3B8' } },
+    grid: { left: 40, right: 40, top: 40, bottom: 30 },
+    xAxis: {
+      type: 'category',
+      data: chartData.map((d) => d.date),
+      axisLabel: {
+        fontSize: 11,
+        color: '#64748B',
+        formatter: (v: string) => {
+          const d = new Date(v)
+          return `${d.getMonth() + 1}/${d.getDate()}`
+        },
+      },
+      axisLine: { lineStyle: { color: '#252C37' } },
+    },
+    yAxis: [
+      { type: 'value', name: 'Score', splitLine: { lineStyle: { color: '#1B212B' } } },
+      { type: 'value', name: 'EAL', splitLine: { show: false } },
+    ],
+    series: [
+      {
+        name: 'Risk Score',
+        type: 'line',
+        data: chartData.map((d) => d.riskScore),
+        smooth: true,
+        symbol: 'none',
+        lineStyle: { width: 2, color: '#38BDF8' },
+      },
+      {
+        name: 'EAL',
+        type: 'line',
+        yAxisIndex: 1,
+        data: chartData.map((d) => d.eal),
+        smooth: true,
+        symbol: 'none',
+        lineStyle: { width: 2, color: '#818CF8' },
+      },
+    ],
+  }
+
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-      <h3 className="mb-4 text-sm font-semibold text-gray-900">Risk Trend</h3>
-      <ResponsiveContainer width="100%" height={300}>
-        <LineChart data={chartData}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-          <XAxis
-            dataKey="date"
-            tick={{ fontSize: 11 }}
-            tickFormatter={(v: string) => {
-              const d = new Date(v)
-              return `${d.getMonth() + 1}/${d.getDate()}`
-            }}
-          />
-          <YAxis yAxisId="left" tick={{ fontSize: 11 }} />
-          <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11 }} />
-          <Tooltip />
-          <Legend />
-          <Line
-            yAxisId="left"
-            type="monotone"
-            dataKey="riskScore"
-            stroke="#dc2626"
-            strokeWidth={2}
-            dot={false}
-            name="Risk Score"
-          />
-          <Line
-            yAxisId="right"
-            type="monotone"
-            dataKey="eal"
-            stroke="#2563eb"
-            strokeWidth={2}
-            dot={false}
-            name="EAL (₹)"
-          />
-        </LineChart>
-      </ResponsiveContainer>
+    <div className="cyber-card p-6">
+      <h3 className="mb-4 text-sm font-semibold text-text-primary">Risk Trend</h3>
+      <EChart option={option} height={300} />
     </div>
   )
 }

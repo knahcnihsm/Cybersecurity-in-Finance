@@ -15,22 +15,22 @@ export default function BudgetCard({ allocated, total }: BudgetCardProps) {
   const pct = total > 0 ? (allocated / total) * 100 : 0
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+    <div className="cyber-card p-4">
       <div className="flex items-center justify-between">
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100">
-          <Wallet className="h-5 w-5 text-green-600" />
+        <div className="flex h-9 w-9 items-center justify-center rounded-md bg-status-low/10">
+          <Wallet className="h-4 w-4 text-status-low" strokeWidth={1.75} />
         </div>
       </div>
-      <p className="mt-4 text-sm font-medium text-gray-500">Security Budget</p>
-      <p className="mt-1 text-3xl font-bold text-green-600">{formatINR(total)}</p>
+      <p className="mt-3 text-xs font-medium uppercase tracking-wider text-text-tertiary">Security Budget</p>
+      <p className="mt-1 text-3xl font-semibold text-status-low">{formatINR(total)}</p>
       <div className="mt-3">
-        <div className="flex justify-between text-xs text-gray-500">
+        <div className="flex justify-between text-xs text-text-tertiary">
           <span>Allocated: {formatINR(allocated)}</span>
           <span>{pct.toFixed(0)}%</span>
         </div>
-        <div className="mt-1 h-2 rounded-full bg-gray-200">
+        <div className="mt-1 h-2 rounded-full bg-bg-hover">
           <div
-            className="h-2 rounded-full bg-green-500 transition-all"
+            className="h-2 rounded-full bg-status-low transition-all"
             style={{ width: `${Math.min(pct, 100)}%` }}
           />
         </div>

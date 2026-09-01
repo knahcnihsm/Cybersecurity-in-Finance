@@ -1,4 +1,5 @@
 import { Shield, TrendingDown, TrendingUp } from 'lucide-react'
+import { clsx } from 'clsx'
 
 interface RiskScoreCardProps {
   score: number
@@ -10,33 +11,38 @@ export default function RiskScoreCard({ score, previousScore }: RiskScoreCardPro
   const improved = diff < 0
 
   const getColor = (s: number) => {
-    if (s >= 80) return 'text-red-600'
-    if (s >= 60) return 'text-orange-600'
-    if (s >= 40) return 'text-yellow-600'
-    return 'text-green-600'
+    if (s >= 80) return 'text-status-critical'
+    if (s >= 60) return 'text-status-high'
+    if (s >= 40) return 'text-status-medium'
+    return 'text-status-low'
   }
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+    <div className="cyber-card p-4">
       <div className="flex items-center justify-between">
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-100">
-          <Shield className="h-5 w-5 text-brand-600" />
+        <div className="flex h-9 w-9 items-center justify-center rounded-md bg-accent-primary/15">
+          <Shield className="h-4 w-4 text-accent-primary" strokeWidth={1.75} />
         </div>
         {diff !== 0 && (
           <span
-            className={`flex items-center gap-1 text-sm font-medium ${improved ? 'text-green-600' : 'text-red-600'}`}
+            className={clsx(
+              'flex items-center gap-1 text-xs font-medium',
+              improved ? 'text-status-low' : 'text-status-critical'
+            )}
           >
             {improved ? (
-              <TrendingDown className="h-4 w-4" />
+              <TrendingDown className="h-3.5 w-3.5" />
             ) : (
-              <TrendingUp className="h-4 w-4" />
+              <TrendingUp className="h-3.5 w-3.5" />
             )}
             {Math.abs(diff).toFixed(1)}
           </span>
         )}
       </div>
-      <p className="mt-4 text-sm font-medium text-gray-500">Enterprise Risk Score</p>
-      <p className={`mt-1 text-3xl font-bold ${getColor(score)}`}>{score.toFixed(1)}</p>
+      <p className="mt-3 text-xs font-medium uppercase tracking-wider text-text-tertiary">
+        Enterprise Risk Score
+      </p>
+      <p className={clsx('mt-1 text-3xl font-semibold', getColor(score))}>{score.toFixed(1)}</p>
     </div>
   )
 }

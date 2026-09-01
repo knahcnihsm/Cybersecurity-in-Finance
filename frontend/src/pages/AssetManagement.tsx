@@ -15,23 +15,23 @@ const typeIcons: Record<string, React.ReactNode> = {
 }
 
 const typeColors: Record<string, string> = {
-  SERVER: 'bg-blue-100 text-blue-700',
-  DATABASE: 'bg-purple-100 text-purple-700',
-  APPLICATION: 'bg-green-100 text-green-700',
-  NETWORK: 'bg-orange-100 text-orange-700',
-  CLOUD: 'bg-cyan-100 text-cyan-700',
-  ENDPOINT: 'bg-gray-100 text-gray-700',
+  SERVER: 'bg-status-info/15 text-status-info',
+  DATABASE: 'bg-accent-secondary/15 text-accent-secondary',
+  APPLICATION: 'bg-status-low/15 text-status-low',
+  NETWORK: 'bg-status-high/15 text-status-high',
+  CLOUD: 'bg-status-live/15 text-status-live',
+  ENDPOINT: 'bg-bg-hover text-text-secondary',
 }
 
 function formatINR(value: number): string {
-  return `₹${value.toLocaleString('en-IN')}`
+  return '\u20B9' + value.toLocaleString('en-IN')
 }
 
 function getCriticalityColor(score: number): string {
-  if (score >= 80) return 'bg-red-500'
-  if (score >= 60) return 'bg-orange-500'
-  if (score >= 40) return 'bg-yellow-500'
-  return 'bg-green-500'
+  if (score >= 80) return 'bg-status-critical'
+  if (score >= 60) return 'bg-status-high'
+  if (score >= 40) return 'bg-status-medium'
+  return 'bg-status-low'
 }
 
 export default function AssetManagement() {
@@ -72,11 +72,11 @@ export default function AssetManagement() {
       label: 'Name',
       render: (v: unknown, row: Record<string, unknown>) => (
         <div className="flex items-center gap-2">
-          <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${typeColors[row.asset_type as string] ?? 'bg-gray-100 text-gray-700'}`}>
+          <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${typeColors[row.asset_type as string] ?? 'bg-bg-hover text-text-secondary'}`}>
             {typeIcons[row.asset_type as string]}
             {row.asset_type as string}
           </span>
-          <span className="font-medium text-gray-900">{v as string}</span>
+          <span className="font-medium text-text-primary">{v as string}</span>
         </div>
       ),
     },
@@ -88,13 +88,13 @@ export default function AssetManagement() {
         const score = v as number
         return (
           <div className="flex items-center gap-2">
-            <div className="h-2 w-20 rounded-full bg-gray-200">
+            <div className="h-2 w-20 rounded-full bg-bg-hover">
               <div
                 className={`h-2 rounded-full ${getCriticalityColor(score)}`}
                 style={{ width: `${score}%` }}
               />
             </div>
-            <span className="text-xs text-gray-600">{score}</span>
+            <span className="text-xs text-text-secondary">{score}</span>
           </div>
         )
       },
@@ -114,7 +114,7 @@ export default function AssetManagement() {
         <span
           className={clsx(
             'mx-auto block h-3 w-3 rounded-full',
-            v ? 'bg-red-500' : 'bg-green-500'
+            v ? 'bg-status-critical' : 'bg-status-low'
           )}
         />
       ),
@@ -125,10 +125,10 @@ export default function AssetManagement() {
       className: 'text-center',
       render: (_v: unknown) => (
         <div className="flex items-center justify-center gap-1">
-          <button className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-brand-600">
+          <button className="rounded p-1 text-text-tertiary hover:bg-bg-hover hover:text-accent-primary">
             <Eye className="h-4 w-4" />
           </button>
-          <button className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-brand-600">
+          <button className="rounded p-1 text-text-tertiary hover:bg-bg-hover hover:text-accent-primary">
             <Edit className="h-4 w-4" />
           </button>
         </div>
@@ -140,10 +140,10 @@ export default function AssetManagement() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Asset Management</h1>
-          <p className="text-sm text-gray-500">{total} assets total</p>
+          <h1 className="text-2xl font-bold text-text-primary">Asset Management</h1>
+          <p className="text-sm text-text-tertiary">{total} assets total</p>
         </div>
-        <button className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700">
+        <button className="cyber-btn-primary">
           <Plus className="h-4 w-4" />
           Add Asset
         </button>
@@ -151,13 +151,13 @@ export default function AssetManagement() {
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-tertiary" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search assets..."
-            className="w-full rounded-lg border border-gray-300 py-2 pl-9 pr-3 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            className="w-full rounded-lg border border-border-default bg-bg-input py-2 pl-9 pr-3 text-sm text-text-primary placeholder:text-text-tertiary focus:border-accent-primary focus:outline-none focus:ring-1 focus:ring-accent-primary"
           />
         </div>
         <select
@@ -166,7 +166,7 @@ export default function AssetManagement() {
             setTypeFilter(e.target.value)
             setPage(1)
           }}
-          className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+          className="rounded-lg border border-border-default bg-bg-input px-3 py-2 text-sm text-text-primary focus:border-accent-primary focus:outline-none focus:ring-1 focus:ring-accent-primary"
         >
           <option value="">All Types</option>
           <option value="SERVER">Server</option>
@@ -178,7 +178,7 @@ export default function AssetManagement() {
         </select>
       </div>
 
-      <div className="rounded-xl border border-gray-200 bg-white shadow-sm">
+      <div className="cyber-card">
         <DataTable
           columns={columns}
           data={filtered as unknown as Record<string, unknown>[]}

@@ -1,7 +1,9 @@
 import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/authStore'
-import { useWebSocket } from '@/hooks/useWebSocket'
+import { useNotificationStore } from '@/store/notificationStore'
+import { useRiskStore } from '@/store/riskStore'
+import { useWebSocket, type WSMessage } from '@/hooks/useWebSocket'
 import MainLayout from '@/components/layout/MainLayout'
 import LoginPage from '@/pages/LoginPage'
 import ExecutiveDashboard from '@/pages/ExecutiveDashboard'
@@ -14,6 +16,35 @@ import InvestmentOptimizer from '@/pages/InvestmentOptimizer'
 import AIAssistant from '@/pages/AIAssistant'
 import Settings from '@/pages/Settings'
 import LoadingSpinner from '@/components/common/LoadingSpinner'
+
+type RiskUpdate = {
+  assetId?: string
+  assetName?: string
+  message?: string
+  delta?: number
+  currentRisk?: number
+  previousRisk?: number
+}
+
+function handleLiveMessage(msg: WSMessage) {
+  const notifications = useNotificationStore.getState()
+  const risk = useRiskStore.getState()
+
+  if (msg.type === 'risk:updated') {
+    const p = msg.payload as RiskUpdate
+    const title = p.assetName || p.assetId || 'asset'
+    const delta = typeof p.delta === 'number' ? p.delta : 0
+    notifications.addNotification(
+      delta > 0 ? 'warning' : 'success',
+      p.message || `Risk changed by ₹${delta.toLocaleString('en-IN')} for ${title}`,
+    )
+    risk.fetchRiskScore()
+    risk.fetchEAL()
+    risk.fetchTrends()
+  } else if (msg.type === 'ingestion:event') {
+    notifications.addNotification('info', 'New security event ingested')
+  }
+}
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, loading } = useAuthStore()
@@ -31,7 +62,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 function AppContent() {
   const { initialize, loading } = useAuthStore()
 
-  useWebSocket()
+  useWebSocket(handleLiveMessage)
 
   useEffect(() => {
     initialize()
@@ -73,7 +104,7 @@ function AppContent() {
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <AppContent />
     </BrowserRouter>
   )

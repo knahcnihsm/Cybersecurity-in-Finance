@@ -1,4 +1,5 @@
 from uuid import UUID
+from datetime import datetime
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 
@@ -183,6 +184,44 @@ class RiskCalculator:
         self.db.commit()
         self.db.refresh(calc)
         return calc
+
+    def persist_snapshot(self, snapshot_date=None) -> RiskSnapshot:
+        """Persist an enterprise-wide risk snapshot for trend/forecast analysis."""
+        assets = self.db.query(Asset).all()
+        if not assets:
+            return None
+
+        total_eal = 0.0
+        total_score = 0.0
+        controls_active = 0
+        vulns_open = 0
+        results = []
+
+        for asset in assets:
+            risk = self.calculate_asset_risk(str(asset.id))
+            if not risk:
+                continue
+            results.append(risk)
+            total_eal += risk["expected_annual_loss"]
+            total_score += risk["risk_score"]
+            controls = (self.db.query(AssetControl)
+                        .filter(AssetControl.asset_id == asset.id,
+                                AssetControl.status.in_(["ACTIVE", "VERIFIED", "IMPLEMENTED"]))
+                        .count())
+            controls_active += controls
+            vulns_open += risk["risk_factors"].get("open_vulns", 0)
+
+        snapshot = RiskSnapshot(
+            risk_score=round(total_score / len(results), 2) if results else 0,
+            expected_annual_loss=round(total_eal, 2),
+            total_controls_active=controls_active,
+            total_vulns_open=vulns_open,
+            snapshot_date=snapshot_date or datetime.utcnow(),
+        )
+        self.db.add(snapshot)
+        self.db.commit()
+        self.db.refresh(snapshot)
+        return snapshot
 
     def calculate_all_risks(self) -> list[dict]:
         assets = self.db.query(Asset).all()

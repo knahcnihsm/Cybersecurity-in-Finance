@@ -188,6 +188,48 @@ def seed_asset_controls(conn, control_uuids):
     print(f"    Inserted {len(asset_control_pairs)} asset-control relationships")
 
 
+def seed_dependencies(conn):
+    print("  Seeding asset dependency graph...")
+
+    # Edge semantics: asset_id DEPENDS ON depends_on_id.
+    # If depends_on_id is compromised, asset_id is exposed (blast radius flows upstream).
+    dependency_pairs = [
+        # (depends_on_asset, depended_asset, dependency_type, criticality)
+        ("API-GW-001", "AUTH-IDP-001", "AUTH", 90),
+        ("API-GW-001", "CUST-DB-001", "DATA", 80),
+        ("WEB-APP-001", "API-GW-001", "NETWORK", 85),
+        ("WEB-APP-001", "AUTH-IDP-001", "AUTH", 90),
+        ("PAY-SRV-001", "CUST-DB-001", "DATA", 95),
+        ("PAY-SRV-001", "AUTH-IDP-001", "AUTH", 88),
+        ("PAY-SRV-001", "API-GW-001", "NETWORK", 80),
+        ("CUST-DB-001", "BACKUP-SYS-001", "INFRASTRUCTURE", 75),
+        ("EMAIL-SRV-001", "AUTH-IDP-001", "AUTH", 70),
+        ("CLOUD-MGMT-001", "AUTH-IDP-001", "AUTH", 85),
+        ("CLOUD-MGMT-001", "SIEM-SYS-001", "MONITORING", 60),
+        ("DB-ANALYTICS-001", "CUST-DB-001", "DATA", 85),
+        ("DB-ANALYTICS-001", "BACKUP-SYS-001", "INFRASTRUCTURE", 60),
+        ("SIEM-SYS-001", "API-GW-001", "LOG_SOURCE", 55),
+        ("SIEM-SYS-001", "PAY-SRV-001", "LOG_SOURCE", 55),
+        ("SIEM-SYS-001", "WEB-APP-001", "LOG_SOURCE", 55),
+        ("BACKUP-SYS-001", "CLOUD-MGMT-001", "INFRASTRUCTURE", 65),
+        ("VPN-SRV-001", "AUTH-IDP-001", "AUTH", 80),
+    ]
+
+    cur = conn.cursor()
+    for source_str, target_str, dep_type, criticality in dependency_pairs:
+        source_uuid = asset_string_id_to_uuid(source_str)
+        target_uuid = asset_string_id_to_uuid(target_str)
+        if not source_uuid or not target_uuid:
+            continue
+        cur.execute("""
+            INSERT INTO asset.asset_dependencies (asset_id, depends_on_id, dependency_type, criticality)
+            VALUES (%s, %s, %s, %s)
+            ON CONFLICT (asset_id, depends_on_id) DO NOTHING
+        """, (str(source_uuid), str(target_uuid), dep_type, criticality))
+    cur.close()
+    print(f"    Inserted {len(dependency_pairs)} asset dependencies")
+
+
 def seed_risk_calculations(conn):
     print("  Seeding risk calculations...")
 
@@ -242,6 +284,53 @@ def seed_risk_calculations(conn):
     print(f"    Inserted risk calculations for {len(assets)} assets")
 
 
+def seed_risk_snapshots(conn):
+    print("  Seeding historical risk snapshots...")
+    from datetime import datetime, timedelta
+
+    import random
+    random.seed(7)
+
+    cur = conn.cursor()
+    today = datetime.utcnow().date()
+    months_back = 8
+    base_eal = 0
+    cur.execute("SELECT COALESCE(SUM(expected_annual_loss), 0) FROM risk.risk_calculations")
+    row = cur.fetchone()
+    if row:
+        base_eal = float(row[0] or 0)
+
+    base_vulns = 0
+    cur.execute("SELECT COUNT(*) FROM vuln.vulnerabilities WHERE status IN ('OPEN','IN_PROGRESS')")
+    row = cur.fetchone()
+    if row:
+        base_vulns = int(row[0] or 0)
+
+    base_score = 0
+    cur.execute("SELECT COALESCE(AVG(risk_score), 0) FROM risk.risk_calculations")
+    row = cur.fetchone()
+    if row:
+        base_score = float(row[0] or 0)
+
+    # historical drift: back 8 months -> today, roughly +1.5% EAL/month
+    for back in range(months_back, -1, -1):
+        snap_date = today - timedelta(days=30 * back)
+        growth_factor = 1.0 + 0.015 * back
+        eal = base_eal * growth_factor
+        vulns = int(base_vulns * (1.0 + 0.02 * back))
+        score = min(100, base_score + 0.4 * back)
+        cur.execute("""
+            INSERT INTO risk.risk_snapshots (risk_score, expected_annual_loss,
+                total_controls_active, total_vulns_open, snapshot_date)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (
+            round(score, 2), round(eal, 2),
+            5 + back, vulns, snap_date
+        ))
+    cur.close()
+    print(f"    Inserted {months_back + 1} historical snapshots")
+
+
 def main():
     print("=" * 60)
     print("  CyberRisk Quantifier — Migration & Seed")
@@ -254,11 +343,22 @@ def main():
     run_migrations(conn)
 
     print("=== Seeding Mock Data ===\n")
-    seed_assets(conn)
-    control_uuids = seed_controls(conn)
-    seed_vulnerabilities(conn)
-    seed_asset_controls(conn, control_uuids)
-    seed_risk_calculations(conn)
+
+    cur = conn.cursor()
+    cur.execute("SELECT COUNT(*) FROM asset.assets")
+    already_seeded = cur.fetchone()[0] > 0
+    cur.close()
+
+    if already_seeded:
+        print("  Data already present — skipping seed (delete rows to re-seed).\n")
+    else:
+        seed_assets(conn)
+        control_uuids = seed_controls(conn)
+        seed_vulnerabilities(conn)
+        seed_asset_controls(conn, control_uuids)
+        seed_dependencies(conn)
+        seed_risk_calculations(conn)
+        seed_risk_snapshots(conn)
 
     conn.close()
 

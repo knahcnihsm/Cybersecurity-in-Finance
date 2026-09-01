@@ -80,11 +80,11 @@ export default function AIAssistant() {
   }
 
   return (
-    <div className="flex h-[calc(100vh-8rem)] flex-col rounded-xl border border-gray-200 bg-white shadow-sm">
-      <div className="border-b border-gray-200 px-6 py-4">
+    <div className="flex h-[calc(100vh-8rem)] flex-col cyber-card">
+      <div className="border-b border-border-subtle px-6 py-4">
         <div className="flex items-center gap-2">
-          <Bot className="h-5 w-5 text-brand-600" />
-          <h2 className="text-sm font-semibold text-gray-900">AI Security Assistant</h2>
+          <Bot className="h-5 w-5 text-accent-primary" />
+          <h2 className="text-sm font-semibold text-text-primary">AI Security Assistant</h2>
         </div>
       </div>
 
@@ -99,14 +99,14 @@ export default function AIAssistant() {
                 className={`flex max-w-[75%] items-start gap-2 rounded-xl px-4 py-3 text-sm ${
                   msg.role === 'user'
                     ? 'bg-brand-600 text-white'
-                    : 'bg-gray-100 text-gray-900'
+                    : 'bg-bg-elevated text-text-primary border border-border-subtle'
                 }`}
               >
                 <div className="mt-0.5 flex-shrink-0">
                   {msg.role === 'user' ? (
                     <User className="h-4 w-4" />
                   ) : (
-                    <Bot className="h-4 w-4 text-brand-600" />
+                    <Bot className="h-4 w-4 text-accent-secondary" />
                   )}
                 </div>
                 <div>
@@ -124,7 +124,7 @@ export default function AIAssistant() {
           ))}
           {responding && (
             <div className="flex justify-start">
-              <div className="flex items-center gap-2 rounded-xl bg-gray-100 px-4 py-3 text-sm text-gray-500">
+              <div className="flex items-center gap-2 rounded-xl bg-bg-elevated px-4 py-3 text-sm text-text-tertiary">
                 <LoadingSpinner size="sm" />
                 Thinking...
               </div>
@@ -133,14 +133,14 @@ export default function AIAssistant() {
         </div>
       </div>
 
-      <div className="border-t border-gray-200 px-6 py-3">
+      <div className="border-t border-border-subtle px-6 py-3">
         <div className="mb-2 flex flex-wrap gap-2">
           {QUICK_ACTIONS.map((action) => (
             <button
               key={action.label}
               onClick={() => send(action.label)}
               disabled={responding}
-              className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-3 py-1 text-xs text-gray-600 hover:bg-gray-50 disabled:opacity-50"
+              className="inline-flex items-center gap-1 rounded-full border border-border-default bg-bg-surface px-3 py-1 text-xs text-text-secondary hover:bg-bg-hover disabled:opacity-50"
             >
               <action.icon className="h-3 w-3" />
               {action.label}
@@ -159,13 +159,13 @@ export default function AIAssistant() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ask a question..."
-            className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            className="cyber-input flex-1"
             disabled={responding}
           />
           <button
             type="submit"
             disabled={!input.trim() || responding}
-            className="inline-flex items-center gap-1 rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
+            className="cyber-btn-primary"
           >
             <Send className="h-4 w-4" />
             Send

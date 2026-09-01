@@ -21,10 +21,10 @@ CREATE TABLE IF NOT EXISTS vuln.vulnerabilities (
     updated_at      TIMESTAMP DEFAULT NOW()
 );
 
-CREATE INDEX idx_vuln_severity ON vuln.vulnerabilities(severity);
-CREATE INDEX idx_vuln_status ON vuln.vulnerabilities(status);
-CREATE INDEX idx_vuln_asset ON vuln.vulnerabilities(affected_asset);
-CREATE INDEX idx_vuln_cvss ON vuln.vulnerabilities(cvss_score DESC);
-CREATE INDEX idx_vuln_cve ON vuln.vulnerabilities(cve_id);
-CREATE INDEX idx_vuln_source ON vuln.vulnerabilities(source);
-CREATE INDEX idx_vuln_discovered ON vuln.vulnerabilities(discovered_at DESC);
+CREATE INDEX IF NOT EXISTS idx_vuln_severity ON vuln.vulnerabilities(severity);
+CREATE INDEX IF NOT EXISTS idx_vuln_status ON vuln.vulnerabilities(status);
+CREATE INDEX IF NOT EXISTS idx_vuln_asset ON vuln.vulnerabilities(affected_asset);
+CREATE INDEX IF NOT EXISTS idx_vuln_cvss ON vuln.vulnerabilities(cvss_score DESC);
+CREATE INDEX IF NOT EXISTS idx_vuln_cve ON vuln.vulnerabilities(cve_id);
+CREATE INDEX IF NOT EXISTS idx_vuln_source ON vuln.vulnerabilities(source);
+CREATE INDEX IF NOT EXISTS idx_vuln_discovered ON vuln.vulnerabilities(discovered_at DESC);

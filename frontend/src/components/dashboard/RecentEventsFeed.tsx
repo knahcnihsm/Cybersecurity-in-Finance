@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { vulnerabilityApi } from '@/api/vulnerabilityApi'
 import { AlertCircle } from 'lucide-react'
+import { SEVERITY_HEX } from '@/theme/severity'
 
 interface EventItem {
   id: string
@@ -33,39 +34,35 @@ export default function RecentEventsFeed() {
       .finally(() => setLoading(false))
   }, [])
 
-  const typeColor: Record<string, string> = {
-    CRITICAL: 'bg-red-500',
-    HIGH: 'bg-orange-500',
-    MEDIUM: 'bg-yellow-500',
-    LOW: 'bg-green-500',
-    INFO: 'bg-blue-500',
-  }
-
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+    <div className="cyber-card p-6">
       <div className="mb-4 flex items-center gap-2">
-        <AlertCircle className="h-5 w-5 text-brand-600" />
-        <h3 className="text-sm font-semibold text-gray-900">Recent Events</h3>
+        <AlertCircle className="h-5 w-5 text-accent-primary" strokeWidth={1.75} />
+        <h3 className="text-sm font-semibold text-text-primary">Recent Events</h3>
       </div>
       {loading ? (
-        <div className="py-8 text-center text-sm text-gray-500">Loading...</div>
+        <div className="py-8 text-center text-sm text-text-tertiary">Loading...</div>
       ) : events.length === 0 ? (
-        <div className="py-8 text-center text-sm text-gray-500">No recent events</div>
+        <div className="py-8 text-center text-sm text-text-tertiary">No recent events</div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-2">
           {events.map((e) => (
-            <div key={e.id} className="flex items-start gap-3">
+            <div
+              key={e.id}
+              className="flex items-start gap-3 rounded-lg border border-transparent px-2 py-2 transition-colors hover:bg-bg-hover hover:border-border-default"
+            >
               <div
-                className={`mt-1 h-2 w-2 flex-shrink-0 rounded-full ${typeColor[e.event_type] ?? 'bg-gray-400'}`}
+                className="mt-1 h-2 w-2 flex-shrink-0 rounded-full"
+                style={{ backgroundColor: SEVERITY_HEX[e.event_type] ?? '#475569' }}
               />
               <div className="min-w-0 flex-1">
-                <p className="text-sm text-gray-700">
+                <p className="text-[13px] text-text-primary">
                   <span className="font-medium">{e.event_type}</span>
                   {e.asset_name && (
-                    <span className="text-gray-500"> on {e.asset_name}</span>
+                    <span className="text-text-tertiary"> on {e.asset_name}</span>
                   )}
                 </p>
-                <p className="text-xs text-gray-400">
+                <p className="text-xs text-text-tertiary">
                   {e.source} · {new Date(e.created_at).toLocaleString()}
                 </p>
               </div>

@@ -5,6 +5,17 @@ import uuid
 from app.database import Base
 
 
+class AssetDependency(Base):
+    __tablename__ = "asset_dependencies"
+    __table_args__ = {"schema": "asset"}
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    asset_id = Column(UUID(as_uuid=True), ForeignKey("asset.assets.id"), nullable=False)
+    depends_on_id = Column(UUID(as_uuid=True), ForeignKey("asset.assets.id"), nullable=False)
+    dependency_type = Column(String(30), nullable=False)
+    criticality = Column(Integer, default=50)
+
+
 class Asset(Base):
     __tablename__ = "assets"
     __table_args__ = {"schema": "asset"}
@@ -129,4 +140,19 @@ class RiskEvent(Base):
     risk_after = Column(Numeric(5, 2))
     eal_before = Column(Numeric(15, 2))
     eal_after = Column(Numeric(15, 2))
+    created_at = Column(DateTime, server_default=func.now())
+
+
+class AuditEntry(Base):
+    __tablename__ = "audit_entries"
+    __table_args__ = {"schema": "risk"}
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    chain_position = Column(Integer, nullable=False)
+    prev_hash = Column(String(64), nullable=False)
+    data_hash = Column(String(64), nullable=False)
+    action = Column(String(100), nullable=False)
+    actor = Column(String(255))
+    asset_id = Column(UUID(as_uuid=True), ForeignKey("asset.assets.id"))
+    details = Column(JSONB)
     created_at = Column(DateTime, server_default=func.now())

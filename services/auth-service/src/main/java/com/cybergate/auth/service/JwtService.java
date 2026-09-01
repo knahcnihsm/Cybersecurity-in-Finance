@@ -57,13 +57,17 @@ public class JwtService {
         }
     }
 
-    public String generateToken(String username) {
+    public String generateToken(String username, String role) {
         Map<String, Object> claims = new HashMap<>();
+        claims.put("roles", role);
+        claims.put("role", role);
         return createToken(claims, username, jwtConfig.getExpiry());
     }
 
-    public String generateRefreshToken(String username) {
+    public String generateRefreshToken(String username, String role) {
         Map<String, Object> claims = new HashMap<>();
+        claims.put("roles", role);
+        claims.put("role", role);
         return createToken(claims, username, jwtConfig.getRefreshExpiry());
     }
 
@@ -71,12 +75,12 @@ public class JwtService {
         return jwtConfig.getExpiry();
     }
 
-    private String createToken(Map<String, Object> claims, String subject, long expiryMillis) {
+    private String createToken(Map<String, Object> claims, String subject, long expirySeconds) {
         return Jwts.builder()
                 .claims(claims)
                 .subject(subject)
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + expiryMillis * 1000))
+                .expiration(new Date(System.currentTimeMillis() + expirySeconds * 1000))
                 .signWith(getSigningKey())
                 .compact();
     }

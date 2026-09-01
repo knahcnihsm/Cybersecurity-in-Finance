@@ -1,16 +1,27 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional
 from datetime import datetime
 from uuid import UUID
 
 
+def _to_camel(s: str) -> str:
+    parts = s.split('_')
+    return parts[0] + ''.join(p.capitalize() for p in parts[1:])
+
+
 class OptimizeRequest(BaseModel):
+    model_config = ConfigDict(alias_generator=_to_camel, populate_by_name=True)
+
     budget_inr: float = Field(..., gt=0, description="Total available budget in INR")
     time_horizon_years: int = Field(default=3, ge=1, le=10)
     max_per_control_percent: float = Field(default=0.40, gt=0, le=1.0)
+    mode: str = Field(default="maximize", pattern="^(maximize|target)$")
+    target_eal_inr: Optional[float] = Field(default=None, ge=0)
 
 
 class InvestmentItemResponse(BaseModel):
+    model_config = ConfigDict(alias_generator=_to_camel, populate_by_name=True, from_attributes=True)
+
     control_id: str
     control_name: str
     control_type: str
@@ -21,11 +32,10 @@ class InvestmentItemResponse(BaseModel):
     implementation_cost: float
     annual_maintenance: float
 
-    class Config:
-        from_attributes = True
-
 
 class OptimizeResponse(BaseModel):
+    model_config = ConfigDict(alias_generator=_to_camel, populate_by_name=True)
+
     total_budget: float
     total_allocated: float
     remaining_budget: float
@@ -37,6 +47,8 @@ class OptimizeResponse(BaseModel):
 
 
 class ROSIResponse(BaseModel):
+    model_config = ConfigDict(alias_generator=_to_camel, populate_by_name=True)
+
     control_id: str
     control_name: str
     control_type: str
@@ -49,12 +61,16 @@ class ROSIResponse(BaseModel):
 
 
 class PlanCreateRequest(BaseModel):
+    model_config = ConfigDict(alias_generator=_to_camel, populate_by_name=True)
+
     name: str
     budget_inr: float
     items: list[dict]
 
 
 class PlanResponse(BaseModel):
+    model_config = ConfigDict(alias_generator=_to_camel, populate_by_name=True, from_attributes=True)
+
     id: str
     name: str
     total_budget_inr: float
@@ -64,6 +80,3 @@ class PlanResponse(BaseModel):
     status: str
     items: list[dict]
     created_at: str
-
-    class Config:
-        from_attributes = True
