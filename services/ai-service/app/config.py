@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     use_mock_llm: bool = os.getenv("USE_MOCK_LLM", "true").lower() == "true"
     llm_model: str = os.getenv("LLM_MODEL", "gpt-4o")
     host: str = "0.0.0.0"
-    port: int = 8092
+    port: int = int(os.getenv("PORT", "8092"))
 
     class Config:
         env_file = ".env"

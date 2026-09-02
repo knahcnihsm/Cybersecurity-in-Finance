@@ -42,8 +42,10 @@ export function useWSConnectionState(): WSConnectionState {
 
 function connect() {
   const token = useAuthStore.getState().token
-  const protocol = window.location.protocol === 'https:' ? 'https:' : 'http:'
-  const sock = new SockJS(`${protocol}//${window.location.host}/ws`)
+  const wsUrl = import.meta.env.VITE_WS_URL
+  const sock = wsUrl
+    ? new SockJS(wsUrl)
+    : new SockJS(`${window.location.protocol}//${window.location.host}/ws`)
 
   client = new Client({
     webSocketFactory: () => sock,

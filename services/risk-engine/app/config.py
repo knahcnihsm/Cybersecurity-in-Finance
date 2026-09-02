@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     vuln_service_url: str = os.getenv("VULN_SERVICE_URL", "http://localhost:8083")
     control_service_url: str = os.getenv("CONTROL_SERVICE_URL", "http://localhost:8084")
     host: str = "0.0.0.0"
-    port: int = 8090
+    port: int = int(os.getenv("PORT", "8090"))
 
     class Config:
         env_file = ".env"

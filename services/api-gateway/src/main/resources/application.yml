@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: ${PORT:8080}
 
 spring:
   application:
@@ -10,35 +10,35 @@ spring:
         - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_FIRST
       routes:
         - id: auth-service
-          uri: http://${AUTH_SERVICE_HOST:auth-service}:8081
+          uri: ${AUTH_SERVICE_URL}
           predicates:
             - Path=/api/auth/**
         - id: asset-service
-          uri: http://${ASSET_SERVICE_HOST:asset-service}:8082
+          uri: ${ASSET_SERVICE_URL}
           predicates:
             - Path=/api/assets/**
         - id: vulnerability-service
-          uri: http://${VULNERABILITY_SERVICE_HOST:vulnerability-service}:8083
+          uri: ${VULNERABILITY_SERVICE_URL}
           predicates:
             - Path=/api/vulnerabilities/**
         - id: control-service
-          uri: http://${CONTROL_SERVICE_HOST:control-service}:8084
+          uri: ${CONTROL_SERVICE_URL}
           predicates:
             - Path=/api/controls/**
         - id: ingestion-service
-          uri: http://${INGESTION_SERVICE_HOST:ingestion-service}:8085
+          uri: ${INGESTION_SERVICE_URL}
           predicates:
             - Path=/api/ingestion/**
         - id: risk-engine
-          uri: http://${RISK_ENGINE_HOST:risk-engine}:8090
+          uri: ${RISK_ENGINE_URL}
           predicates:
             - Path=/api/risk/**
         - id: investment-optimizer
-          uri: http://${INVESTMENT_OPTIMIZER_HOST:investment-optimizer}:8091
+          uri: ${INVESTMENT_OPTIMIZER_URL}
           predicates:
             - Path=/api/investment/**
         - id: ai-service
-          uri: http://${AI_SERVICE_HOST:ai-service}:8092
+          uri: ${AI_SERVICE_URL}
           predicates:
             - Path=/api/ai/**
   data:
@@ -46,7 +46,7 @@ spring:
       url: ${REDIS_URL:redis://localhost:6379}
 
 jwt:
-  secret: ${JWT_SECRET:cybergate-default-secret-key-for-jwt-token-signing-2024}
+  secret: ${JWT_SECRET}
 
 management:
   endpoints:
