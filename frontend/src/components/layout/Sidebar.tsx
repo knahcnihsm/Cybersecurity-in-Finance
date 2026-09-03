@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink } from "react-router-dom";
 import {
   Shield,
   LayoutDashboard,
@@ -10,20 +10,20 @@ import {
   TrendingUp,
   Bot,
   Settings,
-} from 'lucide-react'
-import { clsx } from 'clsx'
+} from "lucide-react";
+import { clsx } from "clsx";
 
 const navItems = [
-  { label: 'Executive Dashboard', icon: LayoutDashboard, to: '/' },
-  { label: 'Command Center', icon: ShieldAlert, to: '/security' },
-  { label: 'Risk Analysis', icon: BarChart3, to: '/risk' },
-  { label: 'Assets', icon: Server, to: '/assets' },
-  { label: 'Vulnerabilities', icon: Bug, to: '/vulnerabilities' },
-  { label: 'Scenario Simulator', icon: FlaskConical, to: '/simulator' },
-  { label: 'Investment Optimizer', icon: TrendingUp, to: '/investment' },
-  { label: 'AI Assistant', icon: Bot, to: '/ai' },
-  { label: 'Settings', icon: Settings, to: '/settings' },
-]
+  { label: "Executive Dashboard", icon: LayoutDashboard, to: "/" },
+  { label: "Command Center", icon: ShieldAlert, to: "/security" },
+  { label: "Risk Analysis", icon: BarChart3, to: "/risk" },
+  { label: "Assets", icon: Server, to: "/assets" },
+  { label: "Vulnerabilities", icon: Bug, to: "/vulnerabilities" },
+  { label: "Scenario Simulator", icon: FlaskConical, to: "/simulator" },
+  { label: "Investment Optimizer", icon: TrendingUp, to: "/investment" },
+  { label: "AI Assistant", icon: Bot, to: "/ai" },
+  { label: "Settings", icon: Settings, to: "/settings" },
+];
 
 export default function Sidebar() {
   return (
@@ -38,13 +38,13 @@ export default function Sidebar() {
           <NavLink
             key={item.to}
             to={item.to}
-            end={item.to === '/'}
+            end={item.to === "/"}
             className={({ isActive }) =>
               clsx(
-                'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                 isActive
-                  ? 'bg-brand-600 text-white'
-                  : 'text-brand-200 hover:bg-brand-800 hover:text-white'
+                  ? "bg-brand-600 text-white"
+                  : "text-brand-200 hover:bg-brand-800 hover:text-white",
               )
             }
           >
@@ -58,5 +58,5 @@ export default function Sidebar() {
         <p className="text-xs text-brand-400">CyberRisk Platform v1.0</p>
       </div>
     </aside>
-  )
+  );
 }
